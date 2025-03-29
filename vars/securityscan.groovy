@@ -20,8 +20,6 @@ def call(Map params = [:]) {
             containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
-            containerTemplate(name: 'syft', image: 'anchore/syft:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
-            containerTemplate(name: 'grype', image: 'anchore/grype:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true)
         ],
         envVars: [
             envVar(key: 'GIT_SSL_NO_VERIFY', value: 'false')  // Ensure SSL verification is ON
