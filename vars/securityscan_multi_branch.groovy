@@ -8,7 +8,8 @@ def call(Map params = [:]) {
             containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
-            containerTemplate(name: 'sonarscanner', image: 'sonarsource/sonar-scanner-cli:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true)
+            containerTemplate(name: 'sonarscanner', image: 'sonarsource/sonar-scanner-cli:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
+            containerTemplate(name: 'sonarqube', image: 'sonarqube:latest', command: 'bin/bash', args: '-c \"exec sonar.sh\"', ttyEnabled: true, alwaysPullImage: true, ports: ['9000:9000'])
         ],
         envVars: [
             envVar(key: 'GIT_SSL_NO_VERIFY', value: 'false')
@@ -111,12 +112,8 @@ def call(Map params = [:]) {
                         stage('SonarQube Analysis') {
                             container('sonarscanner') {
                                 sh '''
-                                    sonar-scanner \
-                                    -Dsonar.host.url=http://localhost:9000 \
-                                    -Dsonar.qualitygate.wait=false \
-                                    -Dsonar.scanner.metadataFilePath=sonar-report.json \
-                                    -Dsonar.projectKey=local-analysis \
-                                    -Dsonar.sources=.
+                                    sleep 30  # Wait for SonarQube server to start
+                                    sonar-scanner -Dsonar.host.url=http://localhost:9000 -Dsonar.qualitygate.wait=false -Dsonar.projectKey=local-analysis -Dsonar.sources=.
                                 '''
                                 recordIssues(
                                     enabledForFailure: true,
