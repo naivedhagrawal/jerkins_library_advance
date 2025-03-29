@@ -36,6 +36,7 @@ def call(Map params = [:]) {
                             git --version
                             git config --global --add safe.directory $PWD
                             git clone --depth=1 --branch $GIT_BRANCH $GIT_URL .
+                            mkdir -p reports
                         '''
                     }
                 }
@@ -49,8 +50,7 @@ def call(Map params = [:]) {
                             container('gitleak') {
                                 sh '''
                                     gitleaks version
-                                    mkdir -p reports
-                                    gitleaks detect --source=. --report-path=reports/gitleaks-report.sarif --report-format sarif --exit-code=0
+                                    gitleaks detect --source=. --report-path=reports/gitleaks-report.sarif --report-format sarif --exit-code=0          
                                     gitleaks detect --source=. --report-path=reports/gitleaks-report.csv --report-format csv --exit-code=0
                                 '''
                             }
@@ -60,7 +60,6 @@ def call(Map params = [:]) {
                         stage('OWASP Dependency Check') {
                             container('owasp') {
                                 sh '''
-                                    mkdir -p reports
                                     /usr/share/dependency-check/bin/dependency-check.sh --scan . \
                                         --format "SARIF" --out reports/owasp-report.sarif \
                                         --format "JSON" --out reports/owasp-report.json \
@@ -75,7 +74,6 @@ def call(Map params = [:]) {
                             container('semgrep') {
                                 sh '''
                                     semgrep --version
-                                    mkdir -p reports
                                     semgrep --config=auto --sarif --output reports/semgrep-report.sarif .
                                     semgrep --config=auto --verbose --output reports/semgrep-report.txt .
                                 '''
@@ -86,7 +84,6 @@ def call(Map params = [:]) {
                         stage('Checkov IaC Scan') {
                             container('checkov') {
                                 sh '''
-                                    mkdir -p reports
                                     checkov --quiet --directory . \
                                         -o sarif --output-file reports/checkov-report.sarif \
                                         -o csv --output-file reports/checkov-report.csv || true
