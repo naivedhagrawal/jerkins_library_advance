@@ -108,11 +108,10 @@ def call(Map params = [:]) {
             // ✅ Archive reports only after all parallel stages finish
             stage('Archive and Report') {
                 sh "ls -lh"
-                archiveArtifacts artifacts: "*.sarif, *.json, *.csv, *.xml"
+                archiveArtifacts artifacts: "gitleaks-report.sarif, gitleaks-report.csv, semgrep-report.sarif, semgrep-report.txt, checkov-report.sarif, checkov-report.csv, owasp-report.sarif, owasp-report.json, owasp-report.csv, owasp-report.xml"
 
                 recordIssues(
                     enabledForFailure: true,
-                    aggregatingResults: true,
                     tools: [
                         sarif(pattern: "gitleaks-report.sarif", id: "Gitleaks", name: "Secret Scanning Report"),
                         sarif(pattern: "semgrep-report.sarif", id: "Semgrep", name: "Static Analysis Report"),
