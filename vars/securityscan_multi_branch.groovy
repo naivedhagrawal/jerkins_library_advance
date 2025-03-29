@@ -11,7 +11,7 @@ def call(Map params = [:]) {
             containerTemplate(name: 'sonarscanner', image: 'sonarsource/sonar-scanner-cli:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(
                 name: 'sonarqube',
-                image: 'sonarqube:latest',
+                image: 'sonarqube:community',
                 command: '/bin/sh',                // ✅ Use sh instead of bash
                 args: '-c "/opt/sonarqube/bin/sonar.sh console"',   // ✅ Correct startup script
                 ttyEnabled: true,
