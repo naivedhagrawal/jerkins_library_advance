@@ -55,11 +55,7 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [sarif(pattern: "gitleaks-report.sarif", id: "Secrets", name: "Secret Scanning Report", icon: "symbol-key")],
-                                    trends: [
-                                        [name: "Secrets - Total Issues", metric: "total", color: "red"],
-                                        [name: "Secrets - New Issues", metric: "new", color: "orange"],
-                                        [name: "Secrets - Fixed Issues", metric: "fixed", color: "green"]
-                                    ],
+                                    
                                     qualityGates: [
                                         [threshold: 5, type: 'TOTAL', unstable: true],
                                         [threshold: 2, type: 'NEW', unstable: true]
@@ -90,11 +86,7 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerability", name: "Dependency Check Report")],
-                                    trends: [
-                                        [name: "Vulnerability - Total Issues", metric: "total", color: "red"],
-                                        [name: "Vulnerability - New Issues", metric: "new", color: "orange"],
-                                        [name: "Vulnerability - Fixed Issues", metric: "fixed", color: "green"]
-                                    ],
+                                    
                                     qualityGates: [
                                         [threshold: 20, type: 'TOTAL', unstable: true],
                                         [threshold: 8, type: 'NEW', unstable: true]
@@ -113,11 +105,7 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [sarif(pattern: "semgrep-report.sarif", id: "StaticAnalysis", name: "Static Analysis Report", icon: "symbol-error")],
-                                    trends: [
-                                        [name: "Static Analysis - Total Issues", metric: "total", color: "red"],
-                                        [name: "Static Analysis - New Issues", metric: "new", color: "orange"],
-                                        [name: "Static Analysis - Fixed Issues", metric: "fixed", color: "green"]
-                                    ],
+                                   
                                     qualityGates: [
                                         [threshold: 15, type: 'TOTAL', unstable: true],
                                         [threshold: 5, type: 'NEW', unstable: true]
@@ -136,11 +124,7 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [sarif(pattern: "results.sarif", id: "IaC", name: "IaC Vulnerability Report", icon: "symbol-cloud")],
-                                    trends: [
-                                        [name: "IaC - Total Issues", metric: "total", color: "red"],
-                                        [name: "IaC - New Issues", metric: "new", color: "orange"],
-                                        [name: "IaC - Fixed Issues", metric: "fixed", color: "green"]
-                                    ],
+                                    
                                     qualityGates: [
                                         [threshold: 10, type: 'TOTAL', unstable: true],
                                         [threshold: 4, type: 'NEW', unstable: true]
