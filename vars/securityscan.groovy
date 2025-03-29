@@ -119,21 +119,21 @@ def call(Map params = [:]) {
                         owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerability", name: "Dependency Check Report")
                     ],
                     trends: [
-                        [name: "Secrets - Total Issues", metric: "total", color: "red"],
-                        [name: "Secrets - New Issues", metric: "new", color: "green"],
-                        [name: "Secrets - Fixed Issues", metric: "fixed", color: "blue"],
+                        [name: "Secrets - Total Issues", metric: "total", color: "red"],       // 🔥 Total issues → RED
+                        [name: "Secrets - New Issues", metric: "new", color: "orange"],       // 🟠 New issues → ORANGE
+                        [name: "Secrets - Fixed Issues", metric: "fixed", color: "green"],    // ✅ Fixed issues → GREEN
                         
                         [name: "Static Analysis - Total Issues", metric: "total", color: "red"],
-                        [name: "Static Analysis - New Issues", metric: "new", color: "green"],
-                        [name: "Static Analysis - Fixed Issues", metric: "fixed", color: "blue"],
+                        [name: "Static Analysis - New Issues", metric: "new", color: "orange"],
+                        [name: "Static Analysis - Fixed Issues", metric: "fixed", color: "green"],
                         
                         [name: "IaC - Total Issues", metric: "total", color: "red"],
-                        [name: "IaC - New Issues", metric: "new", color: "green"],
-                        [name: "IaC - Fixed Issues", metric: "fixed", color: "blue"],
+                        [name: "IaC - New Issues", metric: "new", color: "orange"],
+                        [name: "IaC - Fixed Issues", metric: "fixed", color: "green"],
                         
                         [name: "Vulnerability - Total Issues", metric: "total", color: "red"],
-                        [name: "Vulnerability - New Issues", metric: "new", color: "green"],
-                        [name: "Vulnerability - Fixed Issues", metric: "fixed", color: "blue"]
+                        [name: "Vulnerability - New Issues", metric: "new", color: "orange"],
+                        [name: "Vulnerability - Fixed Issues", metric: "fixed", color: "green"]
                     ],
                     qualityGates: [
                         [threshold: 10, type: 'TOTAL', unstable: true],
