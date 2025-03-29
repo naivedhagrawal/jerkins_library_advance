@@ -13,7 +13,7 @@ def call(Map params = [:]) {
                 name: 'sonarqube',
                 image: 'sonarqube:latest',
                 command: '/bin/sh',                // ✅ Use sh instead of bash
-                args: '-c "/opt/sonarqube/bin/run.sh"',   // ✅ Correct startup script
+                args: '-c "/opt/sonarqube/bin/sonar.sh console"',   // ✅ Correct startup script
                 ttyEnabled: true,
                 alwaysPullImage: true,
                 ports: [portMapping(name: 'sonar', containerPort: 9000, hostPort: 9000)]
