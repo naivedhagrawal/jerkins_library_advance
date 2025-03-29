@@ -117,6 +117,27 @@ def call(Map params = [:]) {
                         sarif(pattern: "semgrep-report.sarif", id: "StaticAnalysis", name: "Static Analysis Report", icon: "symbol-error"),
                         sarif(pattern: "results.sarif", id: "IaC", name: "IaC Vulnerability Report", icon: "symbol-cloud"),
                         owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerability", name: "Dependency Check Report")
+                    ],
+                    trends: [
+                        [name: "Secrets - Total Issues", metric: "total", color: "red"],
+                        [name: "Secrets - New Issues", metric: "new", color: "green"],
+                        [name: "Secrets - Fixed Issues", metric: "fixed", color: "blue"],
+                        
+                        [name: "Static Analysis - Total Issues", metric: "total", color: "red"],
+                        [name: "Static Analysis - New Issues", metric: "new", color: "green"],
+                        [name: "Static Analysis - Fixed Issues", metric: "fixed", color: "blue"],
+                        
+                        [name: "IaC - Total Issues", metric: "total", color: "red"],
+                        [name: "IaC - New Issues", metric: "new", color: "green"],
+                        [name: "IaC - Fixed Issues", metric: "fixed", color: "blue"],
+                        
+                        [name: "Vulnerability - Total Issues", metric: "total", color: "red"],
+                        [name: "Vulnerability - New Issues", metric: "new", color: "green"],
+                        [name: "Vulnerability - Fixed Issues", metric: "fixed", color: "blue"]
+                    ],
+                    qualityGates: [
+                        [threshold: 10, type: 'TOTAL', unstable: true],
+                        [threshold: 5, type: 'NEW', unstable: true]
                     ]
                 )
             }
