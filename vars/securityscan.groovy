@@ -115,7 +115,7 @@ def call(Map params = [:]) {
                         sarif(pattern: "gitleaks-report.sarif", id: "Secrets", name: "🔑 Secret Scanning Report", icon: "🔑"),
                         sarif(pattern: "semgrep-report.sarif", id: "StaticAnalysis", name: "🛠️ Static Analysis Report", icon: "🛠️"),
                         sarif(pattern: "results.sarif", id: "IaC", name: "🌩️ IaC Vulnerability Report", icon: "🌩️"),
-                        owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerability", name: "🛡️ Dependency Check Report", icon: "🛡️")
+                        owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerable Dependency", name: "🛡️ Dependency Check Report", icon: "🛡️")
                     ]
                 )
             }
