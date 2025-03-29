@@ -34,7 +34,7 @@ def call(Map config = [:]) {
                                 echo "Cloning repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
                                 git config --global credential.helper cache
                                 git config --global --add safe.directory $(pwd)
-                                git clone --depth=1 --branch ${GIT_BRANCH} https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replaceFirst('https://', '')} .
+                                git clone --depth=1 --branch ${GIT_BRANCH} https://\${GIT_USERNAME}:\${GIT_PASSWORD}@\${GIT_URL.replaceFirst('https://', '')} .
                             """
                         }
                     } else {
