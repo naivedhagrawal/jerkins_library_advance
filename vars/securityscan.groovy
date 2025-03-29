@@ -86,8 +86,9 @@ def call(Map params = [:]) {
                                 sh '''
                                     semgrep --version
                                     semgrep --config=auto --sarif --output semgrep-report.sarif .
-                                    semgrep --config=auto --verbose --output semgrep-report.txt .
+                                    
                                 '''
+                                /*semgrep --config=auto --verbose --output semgrep-report.txt .*/
                             }
                         }
                     },
