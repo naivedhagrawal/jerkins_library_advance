@@ -1,8 +1,15 @@
-def call(Map config = [:]) {
-    String GIT_URL = config.params?.GIT_URL ?: ''
-    String GIT_BRANCH = config.params?.GIT_BRANCH ?: ''
-    String GIT_CREDENTIALS_ID = config.params?.CREDENTIALS_ID ?: ''
-
+def call(Map params = [:]) {
+    String GIT_URL = ''
+    String GIT_BRANCH = ''
+    String GIT_CREDENTIALS_ID = ''
+    if (params instanceof Map) {
+        def nestedParams = params['params'] ?: params
+        GIT_URL = nestedParams['GIT_URL'] ?: ''
+        GIT_BRANCH = nestedParams['GIT_BRANCH'] ?: ''
+        GIT_CREDENTIALS_ID = nestedParams['CREDENTIALS_ID'] ?: ''
+    } else {
+        error "params is not a Map."
+    }
     if (!GIT_URL || !GIT_BRANCH) {
         error "GIT_URL or GIT_BRANCH is not set!"
     }
@@ -22,50 +29,50 @@ def call(Map config = [:]) {
         showRawYaml: false
     ) {
         node('securityscan-pod') {
-            // Git Clone Stage
             stage('Git Clone') {
                 container('git') {
                     echo "Cloning repository: URL=${GIT_URL}, Branch=${GIT_BRANCH}"
                     if (GIT_CREDENTIALS_ID) {
                         withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                            sh """
+                            sh '''
                                 echo "Git version:"
                                 git --version
-                                echo "Cloning repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
-                                git config --global credential.helper cache
-                                git config --global --add safe.directory $(pwd)
-                                git clone --depth=1 --branch ${GIT_BRANCH} https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replaceFirst('https://', '')} .
-                            """
+                                echo "Cloning private repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
+                                git config --global credential.helper store
+                                echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replaceFirst('https://', '')}" > ~/.git-credentials
+                                git clone --depth=1 --branch ${GIT_BRANCH} ${GIT_URL} .
+                            '''
                         }
                     } else {
-                        sh """
+                        sh '''
+                            echo "Git version:"
+                            git --version
                             echo "Cloning public repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
                             git clone --depth=1 --branch ${GIT_BRANCH} ${GIT_URL} .
-                        """
+                        '''
                     }
                 }
             }
 
-            // Parallel Stages
             parallel(
                 "Gitleaks Secret Scan": {
                     stage('Gitleaks Secret Scan') {
                         container('gitleak') {
-                            sh """
+                            sh '''
                                 echo "Gitleaks version:"
                                 gitleaks version
                                 echo "Running Gitleaks..."
                                 gitleaks detect --source=. --report-path=reports/gitleaks-report.sarif --report-format sarif --exit-code=0
                                 gitleaks detect --source=. --report-path=reports/gitleaks-report.json --report-format json --exit-code=0
                                 gitleaks detect --source=. --report-path=reports/gitleaks-report.csv --report-format csv --exit-code=0
-                            """
+                            '''
                         }
                     }
                 },
                 "OWASP Dependency Check": {
                     stage('OWASP Dependency Check') {
                         container('owasp') {
-                            sh """
+                            sh '''
                                 echo "OWASP Dependency Check version:"
                                 /usr/share/dependency-check/bin/dependency-check.sh --version
                                 echo "Running OWASP Dependency Check..."
@@ -75,38 +82,37 @@ def call(Map config = [:]) {
                                     --format "JSON" --out reports/ \
                                     --format "CSV" --out reports/ \
                                     --format "XML" --out reports/
-                            """
+                            '''
                         }
                     }
                 },
                 "Semgrep Analysis": {
                     stage('Semgrep Analysis') {
                         container('semgrep') {
-                            sh """
+                            sh '''
                                 echo "Semgrep version:"
                                 semgrep --version
                                 semgrep --config=auto --sarif --output reports/semgrep-report.sarif .
                                 semgrep --config=auto --json --output reports/semgrep-report.json .
                                 semgrep --config=auto --verbose --output reports/semgrep-report.txt .
-                            """
+                            '''
                         }
                     }
                 },
                 "Checkov IaC Scan": {
                     stage('Checkov IaC Scan') {
                         container('checkov') {
-                            sh """
+                            sh '''
                                 checkov --directory . \
                                     -o sarif --output-file reports/checkov-report.sarif \
                                     -o json --output-file reports/checkov-report.json \
                                     -o csv --output-file reports/checkov-report.csv || true
-                            """
+                            '''
                         }
                     }
                 }
             )
 
-            // Archive all artifacts and record issues at once
             stage('Archive and Report') {
                 sh "ls -lh reports"
                 archiveArtifacts artifacts: "reports/*"
