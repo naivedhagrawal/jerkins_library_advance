@@ -113,10 +113,10 @@ def call(Map params = [:]) {
                 recordIssues(
                     enabledForFailure: true,
                     tools: [
-                        sarif(pattern: "gitleaks-report.sarif", id: "Secrets", name: "Secret Scanning Report", icon: "key-outline"),
-                        sarif(pattern: "semgrep-report.sarif", id: "StaticAnalysis", name: "Static Analysis Report", icon: "bug-outline"),
-                        sarif(pattern: "results.sarif", id: "IaC", name: "IaC Vulnerability Report", icon: "logo-soundcloud"),
-                        owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerability", name: "Dependency Check Report", icon: "shield-half-outline"),
+                        sarif(pattern: "gitleaks-report.sarif", id: "Secrets", name: "Secret Scanning Report", icon: "symbol-key-outline"),
+                        sarif(pattern: "semgrep-report.sarif", id: "StaticAnalysis", name: "Static Analysis Report", icon: "symbol-bug-outline"),
+                        sarif(pattern: "results.sarif", id: "IaC", name: "IaC Vulnerability Report", icon: "symbol-logo-soundcloud"),
+                        owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerability", name: "Dependency Check Report", icon: "symbol-shield-half-outline"),
                     ]
                 )
             }
