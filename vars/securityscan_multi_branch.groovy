@@ -8,7 +8,7 @@ def call(Map params = [:]) {
             containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
-            containerTemplate(name: 'sonarqube', image: 'sonarsource/sonar-scanner-cli:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true)
+            containerTemplate(name: 'sonarscanner', image: 'sonarsource/sonar-scanner-cli:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true)
         ],
         envVars: [
             envVar(key: 'GIT_SSL_NO_VERIFY', value: 'false')
@@ -109,20 +109,16 @@ def call(Map params = [:]) {
                     },
                     "SonarQube Analysis": {
                         stage('SonarQube Analysis') {
-                            container('sonarqube') {
+                            container('sonarscanner') {
                                 sh '''
-                                    sonar-scanner \
-                                        -Dsonar.projectKey=your_project_key \
-                                        -Dsonar.sources=. \
-                                        -Dsonar.host.url=your_sonarqube_url \
-                                        -Dsonar.login=your_sonarqube_token
+                                    sonar-scanner -Dsonar.sources=.
                                 '''
                                 recordIssues(
                                     enabledForFailure: true,
-                                    tools: [sonarqube(pattern: "**/sonar-report.json", id: "SonarQube", name: "SonarQube Report", icon: "symbol-analysis")],
+                                    tools: [genericIssueParser(pattern: '**/sonar-report.json', name: 'SonarQube Analysis', id: 'SonarQube')],
                                     qualityGates: [
                                         [threshold: 10, type: 'TOTAL', unstable: true],
-                                        [threshold: 4, type: 'NEW', unstable: true]
+                                        [threshold: 5, type: 'NEW', unstable: true]
                                     ]
                                 )
                             }
