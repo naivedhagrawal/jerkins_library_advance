@@ -1,12 +1,10 @@
 def call(Map params = [:]) {
     String GIT_URL = ''
     String GIT_BRANCH = ''
-    String GIT_CREDENTIALS_ID = ''
     if (params instanceof Map) {
         def nestedParams = params['params'] ?: params
         GIT_URL = nestedParams['GIT_URL'] ?: ''
         GIT_BRANCH = nestedParams['GIT_BRANCH'] ?: ''
-        GIT_CREDENTIALS_ID = nestedParams['CREDENTIALS_ID'] ?: ''
     } else {
         error "params is not a Map."
     }
@@ -32,25 +30,12 @@ def call(Map params = [:]) {
             stage('Git Clone') {
                 container('git') {
                     echo "Cloning repository: URL=${GIT_URL}, Branch=${GIT_BRANCH}"
-                    if (GIT_CREDENTIALS_ID) {
-                        withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                            sh '''
-                                echo "Git version:"
-                                git --version
-                                echo "Cloning private repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
-                                git config --global credential.helper store
-                                echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replaceFirst('https://', '')}" > ~/.git-credentials
-                                git clone --depth=1 --branch ${GIT_BRANCH} ${GIT_URL} .
-                            '''
-                        }
-                    } else {
-                        sh '''
-                            echo "Git version:"
-                            git --version
-                            echo "Cloning public repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
-                            git clone --depth=1 --branch ${GIT_BRANCH} ${GIT_URL} .
-                        '''
-                    }
+                    sh '''
+                        echo "Git version:"
+                        git --version
+                        echo "Cloning public repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
+                        git clone --depth=1 --branch ${GIT_BRANCH} ${GIT_URL} .
+                    '''
                 }
             }
 
