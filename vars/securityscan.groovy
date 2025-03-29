@@ -96,8 +96,7 @@ def call(Map params = [:]) {
                             container('checkov') {
                                 sh '''
                                     checkov --quiet --compact --directory . \
-                                        -o sarif --output-file checkov-report.sarif \
-                                        -o csv --output-file checkov-report.csv || true
+                                        -o sarif -o csv || true
                                 '''
                             }
                         }
@@ -106,16 +105,16 @@ def call(Map params = [:]) {
             }
 
             // ✅ Archive reports only after all parallel stages finish
-            stage('Archive and Report') {
+            stage('Archival and Report Generation') {
                 sh "ls -lh"
-                archiveArtifacts artifacts: "gitleaks-report.sarif, gitleaks-report.csv, semgrep-report.sarif, semgrep-report.txt, checkov-report.sarif, checkov-report.csv, owasp-report.sarif, owasp-report.json, owasp-report.csv, owasp-report.xml"
+                archiveArtifacts artifacts: "gitleaks-report.sarif, gitleaks-report.csv, semgrep-report.sarif, semgrep-report.txt, results.sarif, results.csv, owasp-report.sarif, owasp-report.json, owasp-report.csv, owasp-report.xml"
 
                 recordIssues(
                     enabledForFailure: true,
                     tools: [
                         sarif(pattern: "gitleaks-report.sarif", id: "Gitleaks", name: "Secret Scanning Report"),
                         sarif(pattern: "semgrep-report.sarif", id: "Semgrep", name: "Static Analysis Report"),
-                        sarif(pattern: "checkov-report.sarif", id: "Checkov", name: "IaC Vulnerability Report"),
+                        sarif(pattern: "results.sarif", id: "Checkov", name: "IaC Vulnerability Report"),
                         owaspDependencyCheck(pattern: "owasp-report.json", id: "OWASP", name: "Dependency Check Report")
                     ]
                 )
