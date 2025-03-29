@@ -30,13 +30,13 @@ def call(Map params = [:]) {
             
             stage('Git Clone') {
                 container('git') {
-                    sh 'mkdir -p reports'
                     withEnv(["GIT_URL=${GIT_URL}", "GIT_BRANCH=${GIT_BRANCH}"]) {
                         sh '''
                             echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
                             git --version
                             git config --global --add safe.directory $PWD
                             git clone --depth=1 --branch $GIT_BRANCH $GIT_URL .
+                            mkdir -p reports
                         '''
                     }
                 }
