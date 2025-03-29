@@ -30,13 +30,13 @@ def call(Map params = [:]) {
             
             stage('Git Clone') {
                 container('git') {
+                    sh 'mkdir -p reports'
                     withEnv(["GIT_URL=${GIT_URL}", "GIT_BRANCH=${GIT_BRANCH}"]) {
                         sh '''
                             echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
                             git --version
                             git config --global --add safe.directory $PWD
                             git clone --depth=1 --branch $GIT_BRANCH $GIT_URL .
-                            mkdir -p reports
                         '''
                     }
                 }
@@ -50,8 +50,8 @@ def call(Map params = [:]) {
                             container('gitleak') {
                                 sh '''
                                     gitleaks version
-                                    gitleaks detect --source=. --report-path=reports/gitleaks-report.sarif --report-format sarif --exit-code=0          
-                                    gitleaks detect --source=. --report-path=reports/gitleaks-report.csv --report-format csv --exit-code=0
+                                    gitleaks detect --source=. --report-path=gitleaks-report.sarif --report-format sarif --exit-code=0          
+                                    gitleaks detect --source=. --report-path=gitleaks-report.csv --report-format csv --exit-code=0
                                 '''
                             }
                         }
@@ -74,8 +74,8 @@ def call(Map params = [:]) {
                             container('semgrep') {
                                 sh '''
                                     semgrep --version
-                                    semgrep --config=auto --sarif --output reports/semgrep-report.sarif .
-                                    semgrep --config=auto --verbose --output reports/semgrep-report.txt .
+                                    semgrep --config=auto --sarif --output semgrep-report.sarif .
+                                    semgrep --config=auto --verbose --output semgrep-report.txt .
                                 '''
                             }
                         }
@@ -84,9 +84,9 @@ def call(Map params = [:]) {
                         stage('Checkov IaC Scan') {
                             container('checkov') {
                                 sh '''
-                                    checkov --quiet --directory . \
-                                        -o sarif --output-file reports/checkov-report.sarif \
-                                        -o csv --output-file reports/checkov-report.csv || true
+                                    checkov --quiet --compact --directory . \
+                                        -o sarif --output-file checkov-report.sarif \
+                                        -o csv --output-file checkov-report.csv || true
                                 '''
                             }
                         }
@@ -96,16 +96,16 @@ def call(Map params = [:]) {
 
             // ✅ Archive reports only after all parallel stages finish
             stage('Archive and Report') {
-                sh "ls -lh reports"
-                archiveArtifacts artifacts: "reports/*"
+                sh "ls -lh"
+                archiveArtifacts artifacts: "*.sarif, *.json, *.csv, *.xml, reports/*.sarif, reports/*.json, reports/*.csv, reports/*.xml"
 
                 recordIssues(
                     enabledForFailure: true,
                     aggregatingResults: true,
                     tools: [
-                        sarif(pattern: "reports/gitleaks-report.sarif", id: "Gitleaks", name: "Secret Scanning Report"),
-                        sarif(pattern: "reports/semgrep-report.sarif", id: "Semgrep", name: "Static Analysis Report"),
-                        sarif(pattern: "reports/checkov-report.sarif", id: "Checkov", name: "IaC Vulnerability Report"),
+                        sarif(pattern: "gitleaks-report.sarif", id: "Gitleaks", name: "Secret Scanning Report"),
+                        sarif(pattern: "semgrep-report.sarif", id: "Semgrep", name: "Static Analysis Report"),
+                        sarif(pattern: "checkov-report.sarif", id: "Checkov", name: "IaC Vulnerability Report"),
                         owaspDependencyCheck(pattern: "reports/owasp-report.json", id: "OWASP", name: "Dependency Check Report")
                     ]
                 )
