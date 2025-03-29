@@ -13,7 +13,7 @@ def call(Map params = [:]) {
     }
 
     podTemplate(
-        label: 'securityscan-pod',
+        label: UUID.randomUUID().toString(),
         containers: [
             containerTemplate(name: 'git', image: 'alpine/git:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'gitleak', image: 'zricethezav/gitleaks:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
@@ -26,7 +26,7 @@ def call(Map params = [:]) {
         ],
         showRawYaml: false
     ) {
-        node('securityscan-pod') {
+        node(POD_LABEL) {
 
             stage('Git Clone') {
                 container('git') {
