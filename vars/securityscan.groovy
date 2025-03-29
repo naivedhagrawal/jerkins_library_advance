@@ -130,11 +130,7 @@ def call(Map params = [:]) {
                         stage('Checkov IaC Scan') {
                             container('checkov') {
                                 sh '''
-                                    checkov --directory . \
-                                        --quiet \
-                                        --compact \
-                                        -o sarif \
-                                        -o csv || true
+                                    checkov --directory . -o sarif -o csv || true
                                 '''
                                 recordIssues(
                                     enabledForFailure: true,
