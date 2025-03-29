@@ -133,8 +133,8 @@ def call(Map params = [:]) {
                                     checkov --directory . \
                                         --quiet \
                                         --compact \
-                                        --output-file=results.sarif \
-                                        --output sarif || true
+                                        -o sarif \
+                                        -o csv || true
                                 '''
                                 recordIssues(
                                     enabledForFailure: true,
@@ -157,7 +157,7 @@ def call(Map params = [:]) {
             
             stage('Archival') {
                 sh "ls -lh"
-                archiveArtifacts artifacts: "gitleaks-report.sarif, gitleaks-report.csv, semgrep-report.sarif, results.sarif, owasp-report.sarif, owasp-report.json, owasp-report.csv, owasp-report.xml"
+                archiveArtifacts artifacts: "gitleaks-report.sarif, gitleaks-report.csv, semgrep-report.sarif, results.sarif, results.csv, owasp-report.sarif, owasp-report.json, owasp-report.csv, owasp-report.xml"
             }
         }
     }
