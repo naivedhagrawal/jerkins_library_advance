@@ -18,27 +18,29 @@ def call(Map config = [:]) {
         ],
         envVars: [
             envVar(key: 'GIT_SSL_NO_VERIFY', value: 'false')  // Enforce SSL verification for better security
-        ]
+        ],
+        showRawYaml: false
     ) {
         node('securityscan-pod') {
             // Git Clone Stage
             stage('Git Clone') {
                 container('git') {
+                    echo "Cloning repository: URL=${GIT_URL}, Branch=${GIT_BRANCH}"
                     if (GIT_CREDENTIALS_ID) {
                         withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                             sh """
                                 echo "Git version:"
                                 git --version
-                                echo "Cloning repository from \${GIT_URL} - Branch: \${GIT_BRANCH}"
+                                echo "Cloning repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
                                 git config --global credential.helper cache
-                                git config --global --add safe.directory \$(pwd)
-                                git clone --depth=1 --branch \${GIT_BRANCH} https://\${GIT_USERNAME}:\${GIT_PASSWORD}@\${GIT_URL.replaceFirst('https://', '')} .
+                                git config --global --add safe.directory $(pwd)
+                                git clone --depth=1 --branch ${GIT_BRANCH} https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replaceFirst('https://', '')} .
                             """
                         }
                     } else {
                         sh """
-                            echo "Cloning public repository from \${GIT_URL} - Branch: \${GIT_BRANCH}"
-                            git clone --depth=1 --branch \${GIT_BRANCH} \${GIT_URL} .
+                            echo "Cloning public repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
+                            git clone --depth=1 --branch ${GIT_BRANCH} ${GIT_URL} .
                         """
                     }
                 }
