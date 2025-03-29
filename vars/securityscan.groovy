@@ -154,7 +154,7 @@ def call(Map params = [:]) {
             
             stage('Archive Results') {
                 sh "ls -lh"
-                archiveArtifacts artifacts: "gitleaks-report.sarif, gitleaks-report.csv, semgrep-report.sarif, results.sarif, results.csv, owasp-report.sarif, owasp-report.json, owasp-report.csv, owasp-report.xml"
+                archiveArtifacts artifacts: "gitleaks-report.sarif, gitleaks-report.csv, semgrep-report.sarif, results.sarif, *.csv, owasp-report.sarif, owasp-report.json, owasp-report.csv, owasp-report.xml"
             }
         }
     }
