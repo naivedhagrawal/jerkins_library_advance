@@ -11,9 +11,9 @@ def call(Map params = [:]) {
     if (!GIT_URL || !GIT_BRANCH) {
         error "GIT_URL or GIT_BRANCH is not set!"
     }
-
+    def uniqueLabel = "security-scan-${UUID.randomUUID().toString()}"  // Generate unique label
     podTemplate(
-        label: UUID.randomUUID().toString(),
+        label: uniqueLabel,  // Use dynamic label
         containers: [
             containerTemplate(name: 'git', image: 'alpine/git:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'gitleak', image: 'zricethezav/gitleaks:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
@@ -26,7 +26,7 @@ def call(Map params = [:]) {
         ],
         showRawYaml: false
     ) {
-        node(POD_LABEL) {
+        node(uniqueLabel) {
 
             stage('Git Clone') {
                 container('git') {

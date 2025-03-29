@@ -1,6 +1,8 @@
 def call(Map params = [:]) {
+    def uniqueLabel = "security-scan-${UUID.randomUUID().toString()}"  // Generate unique label
+
     podTemplate(
-        label: UUID.randomUUID().toString(),
+        label: uniqueLabel,  // Use dynamic label
         containers: [
             containerTemplate(name: 'gitleak', image: 'zricethezav/gitleaks:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
@@ -12,7 +14,7 @@ def call(Map params = [:]) {
         ],
         showRawYaml: false
     ) {
-        node(POD_LABEL) {  // Use the same dynamic label for the node
+        node(uniqueLabel) {  // Use the same dynamic label for the node
             stage('Checkout Code') {
                 checkout scm
             }
