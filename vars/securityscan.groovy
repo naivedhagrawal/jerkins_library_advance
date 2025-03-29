@@ -69,8 +69,7 @@ def call(Map params = [:]) {
                             container('owasp') {
                                 sh '''
                                     mkdir -p reports
-                                    echo "Running OWASP Dependency Check with JVM options..."
-                                    JAVA_OPTS="--enable-native-access=ALL-UNNAMED -Dorg.apache.lucene.store.MMapDirectory.enableMemorySegments=false" \
+                                    echo "Running OWASP Dependency Check..."
                                     /usr/share/dependency-check/bin/dependency-check.sh --scan . \
                                         --format "SARIF" \
                                         --format "JSON" \
@@ -78,7 +77,7 @@ def call(Map params = [:]) {
                                         --format "XML" \
                                         --exclude "**/*.zip" \
                                         --out "reports/"
-                                        
+                                    
                                     mv reports/dependency-check-report.sarif owasp-report.sarif
                                     mv reports/dependency-check-report.json owasp-report.json
                                     mv reports/dependency-check-report.csv owasp-report.csv
