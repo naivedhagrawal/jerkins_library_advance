@@ -15,6 +15,9 @@ def call(Map config = [:]) {
             containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true),
             containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true),
             containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true)
+        ],
+        envVars: [
+            envVar(key: 'GIT_SSL_NO_VERIFY', value: 'false')  // Enforce SSL verification for better security
         ]
     ) {
         node('securityscan-pod') {
@@ -27,10 +30,9 @@ def call(Map config = [:]) {
                                 echo "Git version:"
                                 git --version
                                 echo "Cloning repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
-                                git config --global credential.helper store
-                                echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replaceFirst('https://', '')}" > ~/.git-credentials
-                                git config --global --add safe.directory .
-                                git clone --depth=1 --branch ${GIT_BRANCH} ${GIT_URL} .
+                                git config --global credential.helper cache
+                                git config --global --add safe.directory $(pwd)
+                                git clone --depth=1 --branch ${GIT_BRANCH} https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replaceFirst('https://', '')} .
                             """
                         }
                     } else {
@@ -38,7 +40,6 @@ def call(Map config = [:]) {
                             echo "Git version:"
                             git --version
                             echo "Cloning repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
-                            git config --global credential.helper store
                             echo "Cloning public repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
                             git clone --depth=1 --branch ${GIT_BRANCH} ${GIT_URL} .
                         """
