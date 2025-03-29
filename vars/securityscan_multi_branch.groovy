@@ -13,7 +13,7 @@ def call(Map params = [:]) {
                 name: 'sonarqube',
                 image: 'sonarqube:latest',
                 command: '/bin/sh',                // ✅ Use sh instead of bash
-                args: '-c "exec sonar.sh"',
+                args: '-c "/opt/sonarqube/bin/run.sh"',   // ✅ Correct startup script
                 ttyEnabled: true,
                 alwaysPullImage: true,
                 ports: [portMapping(name: 'sonar', containerPort: 9000, hostPort: 9000)]
@@ -120,7 +120,8 @@ def call(Map params = [:]) {
                         stage('SonarQube Analysis') {
                             container('sonarscanner') {
                                 sh '''
-                                    sleep 30  # Wait for SonarQube server to start
+                                    echo "Waiting for SonarQube server to be ready..."
+                                    sleep 60  # ✅ Wait for SonarQube to be fully initialized
                                     sonar-scanner -Dsonar.host.url=http://localhost:9000 -Dsonar.qualitygate.wait=false -Dsonar.projectKey=local-analysis -Dsonar.sources=.
                                 '''
                                 recordIssues(
