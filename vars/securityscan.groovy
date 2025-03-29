@@ -36,7 +36,6 @@ def call(Map params = [:]) {
                             git --version
                             git config --global --add safe.directory $PWD
                             git clone --depth=1 --branch $GIT_BRANCH $GIT_URL .
-                            mkdir -p reports
                         '''
                     }
                 }
@@ -60,11 +59,20 @@ def call(Map params = [:]) {
                         stage('OWASP Dependency Check') {
                             container('owasp') {
                                 sh '''
+                                    mkdir -p reports
+                                    echo "Running OWASP Dependency Check..."
+                                    echo "OWASP Dependency Check version:"
+                                    /usr/share/dependency-check/bin/dependency-check.sh --version
+                                    echo "Scanning for vulnerabilities..."
                                     /usr/share/dependency-check/bin/dependency-check.sh --scan . \
-                                        --format "SARIF" --out reports/owasp-report.sarif \
-                                        --format "JSON" --out reports/owasp-report.json \
-                                        --format "CSV" --out reports/owasp-report.csv \
-                                        --format "XML" --out reports/owasp-report.xml
+                                        --format "SARIF" \
+                                        --format "JSON" \
+                                        --format "CSV" \
+                                        --format "XML" \
+                                        --exclude "**/*.zip" \
+                                        --out "reports/"
+                                    
+                                    mv reports/dependency-check-report.{sarif,json,csv,xml} owasp-report.{sarif,json,csv,xml}
                                 '''
                             }
                         }
@@ -97,7 +105,7 @@ def call(Map params = [:]) {
             // ✅ Archive reports only after all parallel stages finish
             stage('Archive and Report') {
                 sh "ls -lh"
-                archiveArtifacts artifacts: "*.sarif, *.json, *.csv, *.xml, reports/*.sarif, reports/*.json, reports/*.csv, reports/*.xml"
+                archiveArtifacts artifacts: "*.sarif, *.json, *.csv, *.xml"
 
                 recordIssues(
                     enabledForFailure: true,
@@ -106,7 +114,7 @@ def call(Map params = [:]) {
                         sarif(pattern: "gitleaks-report.sarif", id: "Gitleaks", name: "Secret Scanning Report"),
                         sarif(pattern: "semgrep-report.sarif", id: "Semgrep", name: "Static Analysis Report"),
                         sarif(pattern: "checkov-report.sarif", id: "Checkov", name: "IaC Vulnerability Report"),
-                        owaspDependencyCheck(pattern: "reports/owasp-report.json", id: "OWASP", name: "Dependency Check Report")
+                        owaspDependencyCheck(pattern: "owasp-report.json", id: "OWASP", name: "Dependency Check Report")
                     ]
                 )
             }
