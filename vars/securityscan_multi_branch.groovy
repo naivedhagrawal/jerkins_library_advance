@@ -8,15 +8,6 @@ def call(Map params = [:]) {
             containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
-            containerTemplate(name: 'sonarscanner', image: 'sonarsource/sonar-scanner-cli:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
-            containerTemplate(
-                name: 'sonarqube',
-                image: 'sonarqube:community',
-                command: '',                // ✅ Use default entrypoint
-                ttyEnabled: true,
-                alwaysPullImage: true,
-                ports: [portMapping(name: 'sonar', containerPort: 9000, hostPort: 9000)]
-            )
         ],
         envVars: [
             envVar(key: 'GIT_SSL_NO_VERIFY', value: 'false')
@@ -42,6 +33,7 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [sarif(pattern: "gitleaks-report.sarif", id: "Secrets", name: "Secret Scanning Report", icon: "symbol-key")],
+                                    
                                     qualityGates: [
                                         [threshold: 5, type: 'TOTAL', unstable: true],
                                         [threshold: 2, type: 'NEW', unstable: true]
@@ -72,6 +64,7 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerability", name: "Dependency Check Report")],
+                                    
                                     qualityGates: [
                                         [threshold: 20, type: 'TOTAL', unstable: true],
                                         [threshold: 8, type: 'NEW', unstable: true]
@@ -90,6 +83,7 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [sarif(pattern: "semgrep-report.sarif", id: "StaticAnalysis", name: "Static Analysis Report", icon: "symbol-error")],
+                                   
                                     qualityGates: [
                                         [threshold: 15, type: 'TOTAL', unstable: true],
                                         [threshold: 5, type: 'NEW', unstable: true]
@@ -107,6 +101,7 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [sarif(pattern: "results.sarif", id: "IaC", name: "IaC Vulnerability Report", icon: "symbol-cloud")],
+                                    
                                     qualityGates: [
                                         [threshold: 10, type: 'TOTAL', unstable: true],
                                         [threshold: 4, type: 'NEW', unstable: true]
@@ -114,26 +109,7 @@ def call(Map params = [:]) {
                                 )
                             }
                         }
-                    },
-                    "SonarQube Analysis": {
-                        stage('SonarQube Analysis') {
-                            container('sonarscanner') {
-                                sh '''
-                                    echo "Waiting for SonarQube server to be ready..."
-                                    sleep 60  # ✅ Wait for SonarQube to be fully initialized
-                                    sonar-scanner -Dsonar.host.url=http://localhost:9000 -Dsonar.qualitygate.wait=false -Dsonar.projectKey=local-analysis -Dsonar.sources=.
-                                '''
-                                recordIssues(
-                                    enabledForFailure: true,
-                                    tools: [genericIssueParser(pattern: '**/sonar-report.json', name: 'SonarQube Analysis', id: 'SonarQube')],
-                                    qualityGates: [
-                                        [threshold: 10, type: 'TOTAL', unstable: true],
-                                        [threshold: 5, type: 'NEW', unstable: true]
-                                    ]
-                                )
-                            }
-                        }
-                    }
+                    }                 
                 )
             }
             
