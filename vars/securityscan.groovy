@@ -119,7 +119,6 @@ def call(Map params = [:]) {
                             container('checkov') {
                                 sh '''
                                     checkov --directory . -o sarif -o csv || true
-                                    ls -lh
                                 '''
                                 recordIssues(
                                     enabledForFailure: true,
