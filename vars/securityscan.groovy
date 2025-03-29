@@ -1,7 +1,7 @@
 def call(Map config = [:]) {
     String GIT_URL = config.params?.GIT_URL ?: ''
     String GIT_BRANCH = config.params?.GIT_BRANCH ?: ''
-    String GIT_CREDENTIALS_ID = config.params?.CREDENTIALS_ID ?: 'git-credentials-id' // Default credential ID
+    String GIT_CREDENTIALS_ID = config.params?.CREDENTIALS_ID ?: ''
 
     if (!GIT_URL || !GIT_BRANCH) {
         error "GIT_URL or GIT_BRANCH is not set!"
@@ -21,14 +21,25 @@ def call(Map config = [:]) {
             // Git Clone Stage
             stage('Git Clone') {
                 container('git') {
-                    withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                    if (GIT_CREDENTIALS_ID) {
+                        withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS_ID, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                            sh """
+                                echo "Git version:"
+                                git --version
+                                echo "Cloning repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
+                                git config --global credential.helper store
+                                echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replaceFirst('https://', '')}" > ~/.git-credentials
+                                git config --global --add safe.directory .
+                                git clone --depth=1 --branch ${GIT_BRANCH} ${GIT_URL} .
+                            """
+                        }
+                    } else {
                         sh """
                             echo "Git version:"
                             git --version
                             echo "Cloning repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
                             git config --global credential.helper store
-                            echo "https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replaceFirst('https://', '')}" > ~/.git-credentials
-                            git config --global --add safe.directory .
+                            echo "Cloning public repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
                             git clone --depth=1 --branch ${GIT_BRANCH} ${GIT_URL} .
                         """
                     }
