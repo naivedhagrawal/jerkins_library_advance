@@ -20,7 +20,7 @@ def call(Map params = [:]) {
             containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true,),
             containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true,),
             containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true,),
-            containerTemplate(name: 'syft', image: 'anchore/syft:latest', command: '/bin/syft', args: 'packages . -o json', ttyEnabled: true),
+            containerTemplate(name: 'syft', image: 'anchore/syft:latest', command: '/usr/local/bin/syft', args: 'packages . -o json', ttyEnabled: true),
             containerTemplate(name: 'grype', image: 'anchore/grype:latest', command: '/usr/local/bin/grype', args: 'dir:.', ttyEnabled: true)
         ],
         envVars: [
