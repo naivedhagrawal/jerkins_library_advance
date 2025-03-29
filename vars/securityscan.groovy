@@ -15,11 +15,11 @@ def call(Map params = [:]) {
     podTemplate(
         label: 'securityscan-pod',
         containers: [
-            containerTemplate(name: 'git', image: 'alpine/git:latest', command: 'cat', ttyEnabled: true),
-            containerTemplate(name: 'gitleak', image: 'zricethezav/gitleaks:latest', command: 'cat', ttyEnabled: true),
-            containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true),
-            containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true),
-            containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true)
+            containerTemplate(name: 'git', image: 'alpine/git:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always'),
+            containerTemplate(name: 'gitleak', image: 'zricethezav/gitleaks:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always'),
+            containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always'),
+            containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always'),
+            containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always')
         ],
         envVars: [
             envVar(key: 'GIT_SSL_NO_VERIFY', value: 'false')  // Ensure SSL verification is ON
