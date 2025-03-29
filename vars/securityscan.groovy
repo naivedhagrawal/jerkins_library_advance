@@ -29,13 +29,16 @@ def call(Map params = [:]) {
         node('securityscan-pod') {
             stage('Git Clone') {
                 container('git') {
-                    echo "Cloning repository: URL=${GIT_URL}, Branch=${GIT_BRANCH}"
-                    sh '''
-                        echo "Git version:"
-                        git --version
-                        echo "Cloning public repository from ${GIT_URL} - Branch: ${GIT_BRANCH}"
-                        git clone --depth=1 --branch ${GIT_BRANCH} ${GIT_URL} .
-                    '''
+                    withEnv(["GIT_URL=${GIT_URL}", "GIT_BRANCH=${GIT_BRANCH}"]) {
+                        sh '''
+                            echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
+                            echo "Git version:"
+                            git --version
+                            echo "Cloning repository..."
+                            git config --global --add safe.directory $PWD
+                            git clone --depth=1 --branch $GIT_BRANCH $GIT_URL .
+                        '''
+                    }
                 }
             }
 
