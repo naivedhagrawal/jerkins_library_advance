@@ -12,8 +12,7 @@ def call(Map params = [:]) {
             containerTemplate(
                 name: 'sonarqube',
                 image: 'sonarqube:community',
-                command: '/bin/sh',                // ✅ Use sh instead of bash
-                args: '-c "/opt/sonarqube/bin/sonar.sh console"',   // ✅ Correct startup script
+                command: '',                // ✅ Use default entrypoint
                 ttyEnabled: true,
                 alwaysPullImage: true,
                 ports: [portMapping(name: 'sonar', containerPort: 9000, hostPort: 9000)]
