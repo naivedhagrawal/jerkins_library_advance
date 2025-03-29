@@ -111,7 +111,12 @@ def call(Map params = [:]) {
                         stage('SonarQube Analysis') {
                             container('sonarscanner') {
                                 sh '''
-                                    sonar-scanner -Dsonar.sources=.
+                                    sonar-scanner \
+                                    -Dsonar.host.url=http://localhost:9000 \
+                                    -Dsonar.qualitygate.wait=false \
+                                    -Dsonar.scanner.metadataFilePath=sonar-report.json \
+                                    -Dsonar.projectKey=local-analysis \
+                                    -Dsonar.sources=.
                                 '''
                                 recordIssues(
                                     enabledForFailure: true,
