@@ -9,7 +9,15 @@ def call(Map params = [:]) {
             containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'sonarscanner', image: 'sonarsource/sonar-scanner-cli:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
-            containerTemplate(name: 'sonarqube', image: 'sonarqube:latest', command: 'bin/bash', args: '-c "exec sonar.sh"', ttyEnabled: true, alwaysPullImage: true, ports: [portMapping(name: 'sonar', containerPort: 9000, hostPort: 9000)])
+            containerTemplate(
+                name: 'sonarqube',
+                image: 'sonarqube:latest',
+                command: '/bin/sh',                // ✅ Use sh instead of bash
+                args: '-c "exec sonar.sh"',
+                ttyEnabled: true,
+                alwaysPullImage: true,
+                ports: [portMapping(name: 'sonar', containerPort: 9000, hostPort: 9000)]
+            )
         ],
         envVars: [
             envVar(key: 'GIT_SSL_NO_VERIFY', value: 'false')
