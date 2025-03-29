@@ -87,7 +87,7 @@ def call(Map params = [:]) {
                             container('checkov') {
                                 sh '''
                                     mkdir -p reports
-                                    checkov --directory . \
+                                    checkov --quiet --directory . \
                                         -o sarif --output-file reports/checkov-report.sarif \
                                         -o csv --output-file reports/checkov-report.csv || true
                                 '''
