@@ -19,7 +19,9 @@ def call(Map params = [:]) {
             containerTemplate(name: 'gitleak', image: 'zricethezav/gitleaks:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always'),
             containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always'),
             containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always'),
-            containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always')
+            containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always'),
+            containerTemplate(name: 'syft', image: 'anchore/syft:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always'),
+            containerTemplate(name: 'grype', image: 'anchore/grype:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always')
         ],
         envVars: [
             envVar(key: 'GIT_SSL_NO_VERIFY', value: 'false')  // Ensure SSL verification is ON
@@ -131,13 +133,35 @@ def call(Map params = [:]) {
                                 )
                             }
                         }
+                    },
+                    "SBOM Generation and Vulnerability Scan": {
+                        stage('SBOM and Grype Scan') {
+                            container('syft') {
+                                sh '''
+                                    syft . -o json > sbom.json
+                                '''
+                            }
+                            container('grype') {
+                                sh '''
+                                    grype sbom:./sbom.json -o json > grype-report.json || true
+                                '''
+                                recordIssues(
+                                    enabledForFailure: true,
+                                    tools: [sarif(pattern: "grype-report.json", id: "SBOM", name: "SBOM Vulnerability Report", icon: "symbol-package")],
+                                    
+                                    qualityGates: [
+                                        [threshold: 15, type: 'TOTAL', unstable: true],
+                                        [threshold: 5, type: 'NEW', unstable: true]
+                                    ]
+                                )
+                            }
+                        }
                     }
                 )
             }
             
             stage('Archive Results') {
-                sh "ls -lh"
-                archiveArtifacts artifacts: "gitleaks-report.sarif, gitleaks-report.csv, semgrep-report.sarif, results.sarif, *iac.csv, owasp-report.sarif, owasp-report.json, owasp-report.csv, owasp-report.xml"
+                archiveArtifacts artifacts: "gitleaks-report.sarif, gitleaks-report.csv, semgrep-report.sarif, results.sarif, *iac.csv, owasp-report.sarif, owasp-report.json, owasp-report.csv, owasp-report.xml, sbom.json, grype-report.json"
             }
         }
     }
