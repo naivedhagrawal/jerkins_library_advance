@@ -8,6 +8,7 @@ def call(Map params = [:]) {
             containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'checkov', image: 'bridgecrew/checkov:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
+            containerTemplate(name: 'sonarqube', image: 'sonarsource/sonar-scanner-cli:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true)
         ],
         envVars: [
             envVar(key: 'GIT_SSL_NO_VERIFY', value: 'false')
@@ -33,7 +34,6 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [sarif(pattern: "gitleaks-report.sarif", id: "Secrets", name: "Secret Scanning Report", icon: "symbol-key")],
-                                    
                                     qualityGates: [
                                         [threshold: 5, type: 'TOTAL', unstable: true],
                                         [threshold: 2, type: 'NEW', unstable: true]
@@ -64,7 +64,6 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerability", name: "Dependency Check Report")],
-                                    
                                     qualityGates: [
                                         [threshold: 20, type: 'TOTAL', unstable: true],
                                         [threshold: 8, type: 'NEW', unstable: true]
@@ -83,7 +82,6 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [sarif(pattern: "semgrep-report.sarif", id: "StaticAnalysis", name: "Static Analysis Report", icon: "symbol-error")],
-                                   
                                     qualityGates: [
                                         [threshold: 15, type: 'TOTAL', unstable: true],
                                         [threshold: 5, type: 'NEW', unstable: true]
@@ -101,7 +99,6 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tools: [sarif(pattern: "results.sarif", id: "IaC", name: "IaC Vulnerability Report", icon: "symbol-cloud")],
-                                    
                                     qualityGates: [
                                         [threshold: 10, type: 'TOTAL', unstable: true],
                                         [threshold: 4, type: 'NEW', unstable: true]
@@ -109,7 +106,28 @@ def call(Map params = [:]) {
                                 )
                             }
                         }
-                    }                 
+                    },
+                    "SonarQube Analysis": {
+                        stage('SonarQube Analysis') {
+                            container('sonarqube') {
+                                sh '''
+                                    sonar-scanner \
+                                        -Dsonar.projectKey=your_project_key \
+                                        -Dsonar.sources=. \
+                                        -Dsonar.host.url=your_sonarqube_url \
+                                        -Dsonar.login=your_sonarqube_token
+                                '''
+                                recordIssues(
+                                    enabledForFailure: true,
+                                    tools: [sonarqube(pattern: "**/sonar-report.json", id: "SonarQube", name: "SonarQube Report", icon: "symbol-analysis")],
+                                    qualityGates: [
+                                        [threshold: 10, type: 'TOTAL', unstable: true],
+                                        [threshold: 4, type: 'NEW', unstable: true]
+                                    ]
+                                )
+                            }
+                        }
+                    }
                 )
             }
             
