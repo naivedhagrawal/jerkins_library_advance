@@ -15,7 +15,7 @@ def call(Map params = [:]) {
     podTemplate(
         label: 'securityscan-pod',
         containers: [
-            containerTemplate(name: 'git', image: 'alpine/git:latest', command: 'cat', ttyEnabled: true),
+            containerTemplate(name: 'git', image: 'alpine/git:latest', command: 'cat', ttyEnabled: true, imagePullPolicy: 'Always', alwaysPullImage: true),
             containerTemplate(name: 'gitleak', image: 'zricethezav/gitleaks:latest', command: 'cat', ttyEnabled: true),
             containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true),
             containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true),
@@ -113,9 +113,9 @@ def call(Map params = [:]) {
                     enabledForFailure: true,
                     tools: [
                         sarif(pattern: "gitleaks-report.sarif", id: "Secrets", name: "Secret Scanning Report", icon: "symbol-key"),
-                        sarif(pattern: "semgrep-report.sarif", id: "StaticAnalysis", name: "Static Analysis Report", icon: "symbol-tool"),
+                        sarif(pattern: "semgrep-report.sarif", id: "StaticAnalysis", name: "Static Analysis Report", icon: "symbol-magnifying-glass"),
                         sarif(pattern: "results.sarif", id: "IaC", name: "IaC Vulnerability Report", icon: "symbol-cloud"),
-                        owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerability", name: "Dependency Check Report", icon: "symbol-secure")
+                        owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerability", name: "Dependency Check Report", icon: "ssymbol-exclamation-triangle")
                     ]
                 )
             }
