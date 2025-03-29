@@ -51,7 +51,6 @@ def call(Map params = [:]) {
                                     gitleaks version
                                     mkdir -p reports
                                     gitleaks detect --source=. --report-path=reports/gitleaks-report.sarif --report-format sarif --exit-code=0
-                                    gitleaks detect --source=. --report-path=reports/gitleaks-report.json --report-format json --exit-code=0
                                     gitleaks detect --source=. --report-path=reports/gitleaks-report.csv --report-format csv --exit-code=0
                                 '''
                             }
@@ -78,7 +77,6 @@ def call(Map params = [:]) {
                                     semgrep --version
                                     mkdir -p reports
                                     semgrep --config=auto --sarif --output reports/semgrep-report.sarif .
-                                    semgrep --config=auto --json --output reports/semgrep-report.json .
                                     semgrep --config=auto --verbose --output reports/semgrep-report.txt .
                                 '''
                             }
@@ -91,7 +89,6 @@ def call(Map params = [:]) {
                                     mkdir -p reports
                                     checkov --directory . \
                                         -o sarif --output-file reports/checkov-report.sarif \
-                                        -o json --output-file reports/checkov-report.json \
                                         -o csv --output-file reports/checkov-report.csv || true
                                 '''
                             }
