@@ -72,7 +72,10 @@ def call(Map params = [:]) {
                                         --exclude "**/*.zip" \
                                         --out "reports/"
                                     
-                                    mv reports/dependency-check-report.{sarif,json,csv,xml} owasp-report.{sarif,json,csv,xml}
+                                    mv reports/dependency-check-report.sarif owasp-report.sarif
+                                    mv reports/dependency-check-report.json owasp-report.json
+                                    mv reports/dependency-check-report.csv owasp-report.csv
+                                    mv reports/dependency-check-report.xml owasp-report.xml
                                 '''
                             }
                         }
