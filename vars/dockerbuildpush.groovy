@@ -46,12 +46,10 @@ def call(Map params = [:]) {
                                     echo "Cloning private repo: ${GIT_URL} with credentials: ${GIT_CREDENTIALS}"
                                     withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                                         withEnv(["GIT_URL=${GIT_URL}", "GIT_BRANCH=${GIT_BRANCH}"]) {
-                                            sh '''
-                                                echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
-                                                git --version
-                                                git config --global --add safe.directory .
-                                                git clone --depth=1 --branch $GIT_BRANCH https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replace('https://', '')} .
-                                            '''
+                                            sh "echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH""
+                                            sh "git --version"
+                                            sh "git config --global --add safe.directory $PWD"
+                                            sh "git clone --depth=1 --branch $GIT_BRANCH https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replace('https://', '')} ."
                                         } 
                                     }
                                 } else {
