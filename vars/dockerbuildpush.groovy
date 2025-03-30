@@ -83,11 +83,13 @@ def call(Map params) {
                                 try {
                                     echo "Scanning Git repo with Trivy..."
                                     sh "trivy fs . --timeout 15m -f json -o trivy-repo-scan.json"
+                                    sh "trivy fs . --timeout 15m -f table -o trivy-repo-scan.txt"
                                     recordIssues(
                                         enabledForFailure: true,
                                         tool: trivy(pattern: 'trivy-repo-scan.json', id: 'trivy-repo', name: 'Repo Scan Report')
                                     )
                                     archiveArtifacts artifacts: "trivy-repo-scan.json", fingerprint: true
+                                    archiveArtifacts artifacts: "trivy-repo-scan.txt", fingerprint: true
                                 } catch (Exception e) {
                                     error "Trivy repo scan failed: ${e.getMessage()}"
                                 }
@@ -125,3 +127,36 @@ def call(Map params) {
                                         enabledForFailure: true,
                                         tool: trivy(pattern: "trivy-report.json", id: "trivy-json", name: "Image Scan Report"))
                                     archiveArtifacts artifacts: "trivy-report.json", fingerprint: true
+                                    archiveArtifacts artifacts: "trivy-report.txt", fingerprint: true
+                                } catch (Exception e) {
+                                    error "Trivy image scan failed: ${e.getMessage()}"
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('Push Docker Image') {
+                    steps {
+                        container('docker') {
+                            script {
+                                try {
+                                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                                        echo "Logging into registry: ${CUSTOM_REGISTRY}"
+                                        sh """
+                                            echo \$PASSWORD | docker login ${CUSTOM_REGISTRY} -u \$USERNAME --password-stdin
+                                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                                            docker push ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                                        """
+                                    }
+                                } catch (Exception e) {
+                                    error "Push Docker Image failed: ${e.getMessage()}"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
