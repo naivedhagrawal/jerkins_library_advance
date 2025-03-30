@@ -42,9 +42,7 @@ def call(Map params) {
             emptyDirVolume(mountPath: '/root/.cache/trivy', memory: false)
         ]
     ) {
-        node(uniqueLabel) {
-            checkout scm  // Ensure the Jenkinsfile and necessary files are checked out
-            
+        node(uniqueLabel) {            
             environment {
                 IMAGE_NAME = "${IMAGE_NAME}"
                 IMAGE_TAG = "${IMAGE_TAG}"
