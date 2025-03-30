@@ -9,6 +9,8 @@ def call(Map params = [:]) {
     String CUSTOM_REGISTRY = 'docker.io'
     String DOCKERFILE_LOCATION = '.'
 
+    def nestedParams = params['params'] ?: params
+
     GIT_URL = nestedParams['GIT_URL'] ?: ''
     GIT_BRANCH = nestedParams['GIT_BRANCH'] ?: 'main'
     IMAGE_NAME = nestedParams['IMAGE_NAME'] ?: ''
