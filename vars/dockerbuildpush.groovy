@@ -48,17 +48,7 @@ def call(Map params = [:]) {
         ]
     ) {
         node(uniqueLabel) {
-            withEnv([
-                "IMAGE_NAME=${IMAGE_NAME}",
-                "IMAGE_TAG=${IMAGE_TAG}",
-                "DOCKER_HUB_USERNAME=${DOCKER_HUB_USERNAME}",
-                "DOCKER_CREDENTIALS=${DOCKER_CREDENTIALS}",
-                "GIT_CREDENTIALS=${GIT_CREDENTIALS}",
-                "CUSTOM_REGISTRY=${CUSTOM_REGISTRY}",
-                "DOCKERFILE_LOCATION=${DOCKERFILE_LOCATION}",
-                "GIT_URL=${GIT_URL}",
-                "GIT_BRANCH=${GIT_BRANCH}"
-            ]) {
+            {
                 stage('Clone Git Repository') {
                     container('alpine-git') {
                         script {
@@ -66,21 +56,24 @@ def call(Map params = [:]) {
                                 if (GIT_CREDENTIALS?.trim()) {
                                     echo "Cloning private repo: ${GIT_URL} with credentials: ${GIT_CREDENTIALS}"
                                     withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                                        withEnv(["GIT_URL=${GIT_URL}", "GIT_BRANCH=${GIT_BRANCH}"]) {
+                                            sh '''
+                                                echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
+                                                git --version
+                                                git config --global --add safe.directory $PWD
+                                                git clone --depth=1 --branch $GIT_BRANCH https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replace('https://', '')} .
+                                            '''
+                                        } 
+                                    }
+                                } else {
+                                    withEnv(["GIT_URL=${GIT_URL}", "GIT_BRANCH=${GIT_BRANCH}"]) {
                                         sh '''
                                             echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
                                             git --version
                                             git config --global --add safe.directory $PWD
-                                            git clone --depth=1 --branch $GIT_BRANCH https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replace('https://', '')} .
+                                            git clone --depth=1 --branch $GIT_BRANCH $GIT_URL .
                                         '''
                                     }
-                                } else {
-                                    echo "Cloning public repo: ${GIT_URL}"
-                                    sh '''
-                                        echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
-                                        git --version
-                                        git config --global --add safe.directory $PWD
-                                        git clone --depth=1 --branch $GIT_BRANCH $GIT_URL .
-                                    '''
                                 }
                             } catch (Exception e) {
                                 error "Cloning repository failed: ${e.getMessage()}"
