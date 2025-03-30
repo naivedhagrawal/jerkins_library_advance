@@ -44,12 +44,12 @@ def call(Map params) {
                 container('alpine-git') {
                     script {
                         try {
-                            if (GIT_CREDENTIALS) {
+                            if (params.GIT_CREDENTIALS?.trim()) {   // Check for private repo
+                                echo "Cloning private repo: ${GIT_REPO}"
                                 withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                                    echo "Cloning private repo: ${GIT_REPO}"
                                     sh "git clone -b ${GIT_BRANCH} https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_REPO.replace('https://', '')} ."
                                 }
-                            } else {
+                            } else {   // Clone public repo
                                 echo "Cloning public repo: ${GIT_REPO}"
                                 sh "git clone -b ${GIT_BRANCH} ${GIT_REPO} ."
                             }
@@ -59,6 +59,7 @@ def call(Map params) {
                     }
                 }
             }
+
 
             stage('Trivy Repo Scan') {
                 container('trivy') {
