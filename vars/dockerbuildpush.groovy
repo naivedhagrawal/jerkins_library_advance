@@ -33,7 +33,9 @@ def call(Map params = [:]) {
         volumes: [
             emptyDirVolume(mountPath: '/var/run', memory: false),
             emptyDirVolume(mountPath: '/root/.cache/trivy', memory: false)
-        ]
+        ],
+        showRawYaml: false
+
     ) {
         node(uniqueLabel) {
                 stage('Clone Git Repository') {
