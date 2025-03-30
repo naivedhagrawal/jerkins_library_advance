@@ -9,8 +9,6 @@ def call(Map params = [:]) {
     String CUSTOM_REGISTRY = 'docker.io'
     String DOCKERFILE_LOCATION = '.'
 
-    def nestedParams = params['params'] ?: params
-
     GIT_URL = nestedParams['GIT_URL'] ?: ''
     GIT_BRANCH = nestedParams['GIT_BRANCH'] ?: 'main'
     IMAGE_NAME = nestedParams['IMAGE_NAME'] ?: ''
@@ -20,18 +18,6 @@ def call(Map params = [:]) {
     GIT_CREDENTIALS = nestedParams['GIT_CREDENTIALS'] ?: ''
     CUSTOM_REGISTRY = nestedParams['CUSTOM_REGISTRY'] ?: 'docker.io'
     DOCKERFILE_LOCATION = nestedParams['DOCKERFILE_LOCATION'] ?: '.'
-
-    echo "DEBUG: Parameters received: ${nestedParams}"
-
-    def missingParams = []
-    if (!IMAGE_NAME) missingParams << "IMAGE_NAME"
-    if (!DOCKER_HUB_USERNAME) missingParams << "DOCKER_HUB_USERNAME"
-    if (!DOCKER_CREDENTIALS) missingParams << "DOCKER_CREDENTIALS"
-    if (!GIT_URL) missingParams << "GIT_URL"
-
-    if (!missingParams.isEmpty()) {
-        error "Missing required parameters: ${missingParams.join(', ')}"
-    }
 
     def uniqueLabel = "docker-build-push-${UUID.randomUUID().toString()}"
     podTemplate(
