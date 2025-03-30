@@ -78,6 +78,11 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tool: trivy(pattern: 'trivy-repo-scan.json', id: 'trivy-repo', name: 'Repo Scan Report')
+
+                                    qualityGates: [
+                                        [threshold: 5, type: 'TOTAL', unstable: true],
+                                        [threshold: 2, type: 'NEW', unstable: true]
+                                    ]
                                 )
                                 archiveArtifacts artifacts: "trivy-repo-scan.json", fingerprint: true
                                 archiveArtifacts artifacts: "trivy-repo-scan.txt", fingerprint: true
@@ -111,6 +116,11 @@ def call(Map params = [:]) {
                                 recordIssues(
                                     enabledForFailure: true,
                                     tool: trivy(pattern: "trivy-report.json", id: "trivy-json", name: "Image Scan Report")
+
+                                    qualityGates: [
+                                        [threshold: 5, type: 'TOTAL', unstable: true],
+                                        [threshold: 2, type: 'NEW', unstable: true]
+                                    ]
                                 )
                                 archiveArtifacts artifacts: "trivy-report.json", fingerprint: true
                                 archiveArtifacts artifacts: "trivy-report.txt", fingerprint: true
