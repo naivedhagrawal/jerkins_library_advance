@@ -25,18 +25,9 @@ def call(Map params) {
             }
 
             // ✅ Extract Git Parameters
-            String GIT_URL = ''
-            String GIT_BRANCH = ''
-            String GIT_CREDENTIALS = ''
-
-            if (params instanceof Map) {
-                def nestedParams = params['params'] ?: params
-                GIT_URL = nestedParams['GIT_URL'] ?: ''
-                GIT_BRANCH = nestedParams['GIT_BRANCH'] ?: ''
-                GIT_CREDENTIALS = nestedParams['GIT_CREDENTIALS'] ?: ''
-            } else {
-                error "params is not a Map."
-            }
+            String GIT_URL = params.GIT_URL ?: params['params']?.GIT_URL ?: ''
+            String GIT_BRANCH = params.GIT_BRANCH ?: params['params']?.GIT_BRANCH ?: ''
+            String GIT_CREDENTIALS = params.GIT_CREDENTIALS ?: params['params']?.GIT_CREDENTIALS ?: ''
 
             if (!GIT_URL || !GIT_BRANCH) {
                 error "GIT_URL or GIT_BRANCH is not set!"
