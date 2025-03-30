@@ -15,6 +15,7 @@ def call(Map params = [:]) {
     podTemplate(
         label: uniqueLabel,  // Use dynamic label
         containers: [
+            containerTemplate(name: 'git', image: 'alpine/git:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'gitleak', image: 'zricethezav/gitleaks:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'owasp', image: 'owasp/dependency-check-action:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'semgrep', image: 'returntocorp/semgrep:latest', command: 'cat', ttyEnabled: true, alwaysPullImage: true),
@@ -27,8 +28,18 @@ def call(Map params = [:]) {
     ) {
         node(uniqueLabel) {
 
-            stage('Clone Git Repository') {
-                    gitclone(params: [GIT_URL: GIT_URL, GIT_BRANCH: GIT_BRANCH])
+            stage('Git Clone') {
+                container('git') {
+                    withEnv(["GIT_URL=${GIT_URL}", "GIT_BRANCH=${GIT_BRANCH}"]) {
+                        sh '''
+                            echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
+                            git --version
+                            git config --global --add safe.directory $PWD
+                            git clone --depth=1 --branch $GIT_BRANCH $GIT_URL .
+                        '''
+                    }
+                }
+            }
 
             // 🚀 Parallel Security Scans
             stage('Run Security Scans') {
