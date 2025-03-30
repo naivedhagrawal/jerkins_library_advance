@@ -49,7 +49,7 @@ def call(Map params = [:]) {
                                             sh '''
                                                 echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
                                                 git --version
-                                                git config --global --add safe.directory $PWD
+                                                git config --global --add safe.directory .
                                                 git clone --depth=1 --branch $GIT_BRANCH https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replace('https://', '')} .
                                             '''
                                         } 
