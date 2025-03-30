@@ -48,7 +48,6 @@ def call(Map params = [:]) {
         ]
     ) {
         node(uniqueLabel) {
-            {
                 stage('Clone Git Repository') {
                     container('alpine-git') {
                         script {
@@ -154,4 +153,3 @@ def call(Map params = [:]) {
             }
         }
     }
-}
