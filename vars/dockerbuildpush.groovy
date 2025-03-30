@@ -1,3 +1,4 @@
+// /home/naivedh/repo/jerkins_library_advance/vars/dockerbuildpush.groovy
 def call(Map params = [:]) {
     String GIT_URL = ''
     String GIT_BRANCH = ''
@@ -25,7 +26,6 @@ def call(Map params = [:]) {
     podTemplate(
         label: uniqueLabel,
         containers: [
-            containerTemplate(name: 'alpine-git', image: 'alpine/git:latest', command: 'sleep', args: '999999', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'trivy', image: 'aquasec/trivy:latest', command: 'sleep', args: '999999', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'docker', image: 'docker:latest', command: 'sleep', args: '99d', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'docker-daemon', image: 'docker:dind', command: 'dockerd', privileged: true, ttyEnabled: true, alwaysPullImage: true)
@@ -38,6 +38,7 @@ def call(Map params = [:]) {
 
     ) {
         node(uniqueLabel) {
+                // Call securityscan to handle the cloning and scanning
                 stage('Security Scan') {
                     securityscan(params: [GIT_URL: GIT_URL, GIT_BRANCH: GIT_BRANCH, GIT_CREDENTIALS: GIT_CREDENTIALS])
                 }
