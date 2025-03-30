@@ -30,10 +30,10 @@ def call(Map params) {
     podTemplate(
         label: "docker-trivy-${UUID.randomUUID().toString()}",
         containers: [
-            containerTemplate(name: 'alpine-git', image: 'alpine/git:latest', command: 'sleep', args: ['999999'], ttyEnabled: true),
-            containerTemplate(name: 'trivy', image: 'aquasec/trivy:latest', command: 'sleep', args: ['999999'], ttyEnabled: true),
-            containerTemplate(name: 'docker', image: 'docker:latest', command: 'sleep', args: ['99d'], ttyEnabled: true),
-            containerTemplate(name: 'docker-daemon', image: 'docker:dind', command: 'dockerd', privileged: true, ttyEnabled: true)
+            containerTemplate(name: 'alpine-git', image: 'alpine/git:latest', command: 'sleep', args: '999999', ttyEnabled: true, alwaysPullImage: true),
+            containerTemplate(name: 'trivy', image: 'aquasec/trivy:latest', command: 'sleep', args: '999999', ttyEnabled: true, alwaysPullImage: true),
+            containerTemplate(name: 'docker', image: 'docker:latest', command: 'sleep', args: '99d', ttyEnabled: true, alwaysPullImage: true),
+            containerTemplate(name: 'docker-daemon', image: 'docker:dind', command: 'dockerd', privileged: true, ttyEnabled: true, alwaysPullImage: true)
         ],
         volumes: [
             emptyDirVolume(mountPath: '/var/run', memory: false),
@@ -125,36 +125,3 @@ def call(Map params) {
                                         enabledForFailure: true,
                                         tool: trivy(pattern: "trivy-report.json", id: "trivy-json", name: "Image Scan Report"))
                                     archiveArtifacts artifacts: "trivy-report.json", fingerprint: true
-                                    archiveArtifacts artifacts: "trivy-report.txt", fingerprint: true
-                                } catch (Exception e) {
-                                    error "Trivy image scan failed: ${e.getMessage()}"
-                                }
-                            }
-                        }
-                    }
-                }
-
-                stage('Push Docker Image') {
-                    steps {
-                        container('docker') {
-                            script {
-                                try {
-                                    withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                                        echo "Logging into registry: ${CUSTOM_REGISTRY}"
-                                        sh """
-                                            echo \$PASSWORD | docker login ${CUSTOM_REGISTRY} -u \$USERNAME --password-stdin
-                                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
-                                            docker push ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
-                                        """
-                                    }
-                                } catch (Exception e) {
-                                    error "Push Docker Image failed: ${e.getMessage()}"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
