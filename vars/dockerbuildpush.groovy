@@ -142,21 +142,15 @@ def call(Map params = [:]) {
 
                                 withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                                     echo "Logging into Docker registry: ${CUSTOM_REGISTRY} as user: ${USERNAME}"
-                                    sh '''
-                                        echo $PASSWORD | docker login ${CUSTOM_REGISTRY} -u $USERNAME --password-stdin
-                                    '''
+                                    sh "echo $PASSWORD | docker login ${CUSTOM_REGISTRY} -u $USERNAME --password-stdin"
 
                                     // Use different tag format for Docker Hub
                                     if ("${CUSTOM_REGISTRY}" == "docker.io") {
-                                        sh '''
-                                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
-                                            docker push ${USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
-                                        '''
+                                        sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}"
+                                        sh "docker push ${USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}"
                                     } else {
-                                        sh '''
-                                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
-                                            docker push ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
-                                        '''
+                                        sh "docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
+                                        sh "docker push ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}"
                                     }
                                 }
                             } catch (Exception e) {
