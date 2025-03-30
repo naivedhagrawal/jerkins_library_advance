@@ -4,7 +4,6 @@ def call(Map params = [:]) {
     String GIT_BRANCH = ''
     String GIT_CREDENTIALS = ''
     boolean IS_DOCKER_BUILD_PUSH = false
-    boolean IS_SECURITY_POD = false
 
     if (params instanceof Map) {
         def nestedParams = params['params'] ?: params
@@ -12,14 +11,13 @@ def call(Map params = [:]) {
         GIT_BRANCH = nestedParams['GIT_BRANCH'] ?: ''
         GIT_CREDENTIALS = nestedParams['GIT_CREDENTIALS'] ?: ''
         IS_DOCKER_BUILD_PUSH = nestedParams['IS_DOCKER_BUILD_PUSH'] ?: false
-        IS_SECURITY_POD = nestedParams['IS_SECURITY_POD'] ?: false
     } else {
         error "params is not a Map."
     }
     if (!GIT_URL || !GIT_BRANCH) {
         error "GIT_URL or GIT_BRANCH is not set!"
     }
-    
+
     // Define the security scan logic
     def runSecurityScans = {
         // 🚀 Parallel Security Scans
@@ -36,7 +34,7 @@ def call(Map params = [:]) {
                             recordIssues(
                                 enabledForFailure: true,
                                 tools: [sarif(pattern: "gitleaks-report.sarif", id: "Secrets", name: "Secret Scanning Report", icon: "symbol-key")],
-                                
+
                                 qualityGates: [
                                     [threshold: 5, type: 'TOTAL', unstable: true],
                                     [threshold: 2, type: 'NEW', unstable: true]
@@ -67,7 +65,7 @@ def call(Map params = [:]) {
                             recordIssues(
                                 enabledForFailure: true,
                                 tools: [owaspDependencyCheck(pattern: "owasp-report.json", id: "Vulnerability", name: "Dependency Check Report")],
-                                
+
                                 qualityGates: [
                                     [threshold: 20, type: 'TOTAL', unstable: true],
                                     [threshold: 8, type: 'NEW', unstable: true]
@@ -86,7 +84,7 @@ def call(Map params = [:]) {
                             recordIssues(
                                 enabledForFailure: true,
                                 tools: [sarif(pattern: "semgrep-report.sarif", id: "StaticAnalysis", name: "Static Analysis Report", icon: "symbol-error")],
-                               
+
                                 qualityGates: [
                                     [threshold: 15, type: 'TOTAL', unstable: true],
                                     [threshold: 5, type: 'NEW', unstable: true]
@@ -104,7 +102,7 @@ def call(Map params = [:]) {
                             recordIssues(
                                 enabledForFailure: true,
                                 tools: [sarif(pattern: "results.sarif", id: "IaC", name: "IaC Vulnerability Report", icon: "symbol-cloud")],
-                                
+
                                 qualityGates: [
                                     [threshold: 10, type: 'TOTAL', unstable: true],
                                     [threshold: 4, type: 'NEW', unstable: true]
@@ -112,10 +110,10 @@ def call(Map params = [:]) {
                             )
                         }
                     }
-                }                 
+                }
             )
         }
-        
+
         stage('Archive Results') {
             archiveArtifacts artifacts: "gitleaks-report.sarif, gitleaks-report.csv, semgrep-report.sarif, results.sarif, *iac.csv, owasp-report.sarif, owasp-report.json, owasp-report.csv, owasp-report.xml"
         }
@@ -146,6 +144,9 @@ def call(Map params = [:]) {
         }
     } else {
         // If security scan is called from dockerbuildpush
+        stage('Clone Git Repository') {
+            gitclone(params: [GIT_URL: GIT_URL, GIT_BRANCH: GIT_BRANCH, GIT_CREDENTIALS: GIT_CREDENTIALS])
+        }
         container('gitleak'){
             runSecurityScans()
         }
