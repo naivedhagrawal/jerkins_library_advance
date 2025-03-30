@@ -17,7 +17,7 @@ def call(Map params = [:]) {
                 withEnv(["GIT_URL=${GIT_URL}", "GIT_BRANCH=${GIT_BRANCH}"]) {
                     sh "git --version"
                     sh "git config --global --add safe.directory $PWD"
-                    sh "git clone --depth=1 --branch $GIT_BRANCH https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replace('https://', '')} ."
+                    sh "git clone --branch $GIT_BRANCH https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replace('https://', '')} ."
                 }
             }
         } else {
@@ -26,7 +26,7 @@ def call(Map params = [:]) {
                     echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
                     git --version
                     git config --global --add safe.directory $PWD
-                    git clone --depth=1 --branch $GIT_BRANCH $GIT_URL .
+                    git clone --branch $GIT_BRANCH $GIT_URL .
                 '''
             }
         }
