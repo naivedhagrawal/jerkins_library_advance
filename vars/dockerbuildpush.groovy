@@ -34,14 +34,14 @@ def call(Map params) {
     ) {
         node(uniqueLabel) {
             environment {
-                IMAGE_NAME = imageName
-                IMAGE_TAG = imageTag
-                DOCKER_HUB_USERNAME = dockerHubUsername
-                DOCKER_CREDENTIALS = dockerCredentialsId
-                GIT_CREDENTIALS = gitCredentialsId
-                CUSTOM_REGISTRY = customRegistry
-                DOCKERFILE_LOCATION = dockerfileLocation
-                GIT_URL = gitURL
+                IMAGE_NAME = "${imageName}"
+                IMAGE_TAG = "${imageTag}"
+                DOCKER_HUB_USERNAME = "${dockerHubUsername}"
+                DOCKER_CREDENTIALS = "${dockerCredentialsId}"
+                GIT_CREDENTIALS = "${gitCredentialsId}"
+                CUSTOM_REGISTRY = "${customRegistry}"
+                DOCKERFILE_LOCATION = "${dockerfileLocation}"
+                GIT_URL = "${gitURL}"
             }
             stage('Clone Git Repository') {
                 container('alpine-git') {
