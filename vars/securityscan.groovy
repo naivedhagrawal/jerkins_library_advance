@@ -28,7 +28,7 @@ def call(Map params = [:]) {
         node(uniqueLabel) {
 
             stage('Clone Git Repository') {
-                    gitclone(params: [GIT_URL: GIT_URL, GIT_BRANCH: GIT_BRANCH])
+                    gitclone(params: [GIT_URL: GIT_URL, GIT_BRANCH: GIT_BRANCH]) }
 
             // 🚀 Parallel Security Scans
             stage('Run Security Scans') {
