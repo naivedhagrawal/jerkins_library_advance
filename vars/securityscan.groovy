@@ -1,10 +1,16 @@
+// /home/naivedh/repo/jerkins_library_advance/vars/securityscan.groovy
 def call(Map params = [:]) {
     String GIT_URL = ''
     String GIT_BRANCH = ''
+    String GIT_CREDENTIALS = ''
+    boolean IS_DOCKER_BUILD_PUSH = false
+
     if (params instanceof Map) {
         def nestedParams = params['params'] ?: params
         GIT_URL = nestedParams['GIT_URL'] ?: ''
         GIT_BRANCH = nestedParams['GIT_BRANCH'] ?: ''
+        GIT_CREDENTIALS = nestedParams['GIT_CREDENTIALS'] ?: ''
+        IS_DOCKER_BUILD_PUSH = nestedParams['IS_DOCKER_BUILD_PUSH'] ?: false
     } else {
         error "params is not a Map."
     }
@@ -26,10 +32,12 @@ def call(Map params = [:]) {
         showRawYaml: false
     ) {
         node(uniqueLabel) {
-
-            stage('Clone Git Repository') {
-                    gitclone(params: [GIT_URL: GIT_URL, GIT_BRANCH: GIT_BRANCH]) }
-
+            // Clone only if it's not called from dockerbuildpush
+            if (!IS_DOCKER_BUILD_PUSH) {
+                stage('Clone Git Repository') {
+                    gitclone(params: [GIT_URL: GIT_URL, GIT_BRANCH: GIT_BRANCH, GIT_CREDENTIALS: GIT_CREDENTIALS])
+                }
+            }
             // 🚀 Parallel Security Scans
             stage('Run Security Scans') {
                 parallel(
