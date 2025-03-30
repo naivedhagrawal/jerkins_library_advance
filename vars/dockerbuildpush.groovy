@@ -40,7 +40,7 @@ def call(Map params = [:]) {
         node(uniqueLabel) {
                 // Call securityscan to handle the cloning and scanning
                 stage('Security Scan') {
-                    securityscan(params: [GIT_URL: GIT_URL, GIT_BRANCH: GIT_BRANCH, GIT_CREDENTIALS: GIT_CREDENTIALS])
+                    securityscan(params: [GIT_URL: GIT_URL, GIT_BRANCH: GIT_BRANCH, GIT_CREDENTIALS: GIT_CREDENTIALS, IS_DOCKER_BUILD_PUSH: true])
                 }
                 stage('Trivy Repo Scan') {
                     container('trivy') {
@@ -134,3 +134,4 @@ def call(Map params = [:]) {
             }
         }
     }
+}
