@@ -2,18 +2,28 @@ def call(Map params) {
     def nestedParams = params['params'] ?: params
     def gitURL = nestedParams['GIT_URL'] ?: ''
     def gitBranchName = nestedParams['GIT_BRANCH'] ?: 'main'
-    def imageName = nestedParams.IMAGE_NAME
+    def imageName = nestedParams.IMAGE_NAME ?: ''
     def imageTag = nestedParams.IMAGE_TAG ?: 'latest'
-    def dockerHubUsername = nestedParams.DOCKER_HUB_USERNAME
-    def dockerCredentialsId = nestedParams.DOCKER_CREDENTIALS
+    def dockerHubUsername = nestedParams.DOCKER_HUB_USERNAME ?: ''
+    def dockerCredentialsId = nestedParams.DOCKER_CREDENTIALS ?: ''
     def gitCredentialsId = nestedParams.GIT_CREDENTIALS ?: ''
     def customRegistry = nestedParams.CUSTOM_REGISTRY ?: 'docker.io'
     def dockerfileLocation = nestedParams.DOCKERFILE_LOCATION ?: '.'
 
-    if (!imageName || !dockerHubUsername || !dockerCredentialsId || !gitURL) {
-        error "Missing required parameters: IMAGE_NAME, DOCKER_HUB_USERNAME, DOCKER_CREDENTIALS, and GIT_URL are mandatory."
+    // Debugging: Print all parameters
+    echo "DEBUG: Parameters received: ${nestedParams}"
+
+    // Improved validation with specific missing parameters
+    def missingParams = []
+    if (!imageName) missingParams << "IMAGE_NAME"
+    if (!dockerHubUsername) missingParams << "DOCKER_HUB_USERNAME"
+    if (!dockerCredentialsId) missingParams << "DOCKER_CREDENTIALS"
+    if (!gitURL) missingParams << "GIT_URL"
+
+    if (!missingParams.isEmpty()) {
+        error "Missing required parameters: ${missingParams.join(', ')}"
     }
-    
+
     def uniqueLabel = "docker-build-push-${UUID.randomUUID().toString()}"
     podTemplate(
         label: uniqueLabel,
@@ -46,25 +56,21 @@ def call(Map params) {
                                 if (gitCredentialsId?.trim()) {
                                     echo "Cloning private repo: ${gitURL} with credentials: ${gitCredentialsId}"
                                     withCredentials([usernamePassword(credentialsId: gitCredentialsId, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
-                                        withEnv(["GIT_URL=${gitURL}", "GIT_BRANCH=${gitBranchName}"]) {
-                                            sh '''
-                                                echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
-                                                git --version
-                                                git config --global --add safe.directory $PWD
-                                                git clone --depth=1 --branch $GIT_BRANCH https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replace('https://', '')} .
-                                            '''
-                                        }
-                                    }
-                                } else {
-                                    echo "Cloning public repo: ${gitURL}"
-                                    withEnv(["GIT_URL=${gitURL}", "GIT_BRANCH=${gitBranchName}"]) {
                                         sh '''
                                             echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
                                             git --version
                                             git config --global --add safe.directory $PWD
-                                            git clone --depth=1 --branch $GIT_BRANCH $GIT_URL .
+                                            git clone --depth=1 --branch $GIT_BRANCH https://${GIT_USERNAME}:${GIT_PASSWORD}@${GIT_URL.replace('https://', '')} .
                                         '''
                                     }
+                                } else {
+                                    echo "Cloning public repo: ${gitURL}"
+                                    sh '''
+                                        echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
+                                        git --version
+                                        git config --global --add safe.directory $PWD
+                                        git clone --depth=1 --branch $GIT_BRANCH $GIT_URL .
+                                    '''
                                 }
                             } catch (Exception e) {
                                 error "Cloning repository failed: ${e.getMessage()}"
