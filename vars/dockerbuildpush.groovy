@@ -6,13 +6,13 @@ def call(Map params = [:]) {
     String DOCKER_HUB_USERNAME = ''
     String DOCKER_CREDENTIALS = ''
     String GIT_CREDENTIALS = ''
-    String CUSTOM_REGISTRY = 'docker.io'
+    String CUSTOM_REGISTRY = ''
     String DOCKERFILE_LOCATION = '.'
 
     def nestedParams = params['params'] ?: params
 
     GIT_URL = nestedParams['GIT_URL'] ?: ''
-    GIT_BRANCH = nestedParams['GIT_BRANCH'] ?: 'main'
+    GIT_BRANCH = nestedParams['GIT_BRANCH'] ?: ''
     IMAGE_NAME = nestedParams['IMAGE_NAME'] ?: ''
     IMAGE_TAG = nestedParams['IMAGE_TAG'] ?: 'latest'
     DOCKER_HUB_USERNAME = nestedParams['DOCKER_HUB_USERNAME'] ?: ''
@@ -136,13 +136,28 @@ def call(Map params = [:]) {
                     container('docker') {
                         script {
                             try {
+                                if (!IMAGE_NAME || !IMAGE_TAG) {
+                                    error "IMAGE_NAME or IMAGE_TAG is empty. Cannot proceed with Docker push."
+                                }
+
                                 withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                                     echo "Logging into Docker registry: ${CUSTOM_REGISTRY} as user: ${USERNAME}"
                                     sh '''
-                                        echo \$PASSWORD | docker login ${CUSTOM_REGISTRY} -u \$USERNAME --password-stdin
-                                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
-                                        docker push ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                                        echo $PASSWORD | docker login ${CUSTOM_REGISTRY} -u $USERNAME --password-stdin
                                     '''
+
+                                    // Use different tag format for Docker Hub
+                                    if ("${CUSTOM_REGISTRY}" == "docker.io") {
+                                        sh '''
+                                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+                                            docker push ${USERNAME}/${IMAGE_NAME}:${IMAGE_TAG}
+                                        '''
+                                    } else {
+                                        sh '''
+                                            docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                                            docker push ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                                        '''
+                                    }
                                 }
                             } catch (Exception e) {
                                 error "Push Docker Image failed: ${e.getMessage()}"
