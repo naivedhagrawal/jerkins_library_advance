@@ -1,26 +1,23 @@
 def call(Map params) {
-    def imageName = params.IMAGE_NAME
-    def imageTag = params.IMAGE_TAG ?: 'latest'
-    def dockerHubUsername = params.DOCKER_HUB_USERNAME
-    def dockerCredentialsId = params.DOCKER_CREDENTIALS
-    def gitCredentialsId = params.GIT_CREDENTIALS  // Changed variable name
-    def customRegistry = params.CUSTOM_REGISTRY ?: 'docker.io'
-    def dockerfileLocation = params.DOCKERFILE_LOCATION ?: '.'
-    String gitURL = ''
-    String gitBranchName = ''
-     if (params instanceof Map) {
-        def nestedParams = params['params'] ?: params
-        gitURL = nestedParams['GIT_URL'] ?: ''
-        gitBranchName = nestedParams['GIT_BRANCH'] ?: 'main'
-    } else {
-        error "params is not a Map."
-    }
+    def nestedParams = params['params'] ?: params
+    def gitURL = nestedParams['GIT_URL'] ?: ''
+    def gitBranchName = nestedParams['GIT_BRANCH'] ?: 'main'
+    def imageName = nestedParams.IMAGE_NAME
+    def imageTag = nestedParams.IMAGE_TAG ?: 'latest'
+    def dockerHubUsername = nestedParams.DOCKER_HUB_USERNAME
+    def dockerCredentialsId = nestedParams.DOCKER_CREDENTIALS
+    def gitCredentialsId = nestedParams.GIT_CREDENTIALS ?: ''
+    def customRegistry = nestedParams.CUSTOM_REGISTRY ?: 'docker.io'
+    def dockerfileLocation = nestedParams.DOCKERFILE_LOCATION ?: '.'
+
     if (!imageName || !dockerHubUsername || !dockerCredentialsId || !gitURL) {
         error "Missing required parameters: IMAGE_NAME, DOCKER_HUB_USERNAME, DOCKER_CREDENTIALS, and GIT_URL are mandatory."
     }
-     if (!gitURL || !gitBranchName) {
+    
+    if (!gitURL || !gitBranchName) {
         error "GIT_URL or GIT_BRANCH is not set!"
-    }  
+    }
+    
     def uniqueLabel = "docker-build-push-${UUID.randomUUID().toString()}"
     podTemplate(
         label: uniqueLabel,
@@ -41,7 +38,7 @@ def call(Map params) {
                 IMAGE_TAG = imageTag
                 DOCKER_HUB_USERNAME = dockerHubUsername
                 DOCKER_CREDENTIALS = dockerCredentialsId
-                GIT_CREDENTIALS = gitCredentialsId  // Used variable
+                GIT_CREDENTIALS = gitCredentialsId
                 CUSTOM_REGISTRY = customRegistry
                 DOCKERFILE_LOCATION = dockerfileLocation
                 GIT_URL = gitURL
@@ -50,7 +47,7 @@ def call(Map params) {
                 container('alpine-git') {
                     script {
                         try {
-                            if (gitCredentialsId?.trim()) {  // Use gitCredentialsId
+                            if (gitCredentialsId?.trim()) {
                                 echo "Cloning private repo: ${GIT_URL} with credentials: ${gitCredentialsId}"
                                 withCredentials([usernamePassword(credentialsId: gitCredentialsId, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                                     withEnv(["GIT_URL=${gitURL}", "GIT_BRANCH=${gitBranchName}"]) {
