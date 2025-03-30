@@ -1,24 +1,33 @@
-def call(Map params) {
-    def nestedParams = params['params'] ?: params
-    def gitURL = nestedParams['GIT_URL'] ?: ''
-    def gitBranchName = nestedParams['GIT_BRANCH'] ?: 'main'
-    def imageName = nestedParams.IMAGE_NAME ?: ''
-    def imageTag = nestedParams.IMAGE_TAG ?: 'latest'
-    def dockerHubUsername = nestedParams.DOCKER_HUB_USERNAME ?: ''
-    def dockerCredentialsId = nestedParams.DOCKER_CREDENTIALS ?: ''
-    def gitCredentialsId = nestedParams.GIT_CREDENTIALS ?: ''
-    def customRegistry = nestedParams.CUSTOM_REGISTRY ?: 'docker.io'
-    def dockerfileLocation = nestedParams.DOCKERFILE_LOCATION ?: '.'
+def call(Map params = [:]) {
+    String GIT_URL = ''
+    String GIT_BRANCH = ''
+    String IMAGE_NAME = ''
+    String IMAGE_TAG = ''
+    String DOCKER_HUB_USERNAME = ''
+    String DOCKER_CREDENTIALS = ''
+    String GIT_CREDENTIALS = ''
+    String CUSTOM_REGISTRY = 'docker.io'
+    String DOCKERFILE_LOCATION = '.'
 
-    // Debugging: Print all parameters
+    def nestedParams = params['params'] ?: params
+
+    GIT_URL = nestedParams['GIT_URL'] ?: ''
+    GIT_BRANCH = nestedParams['GIT_BRANCH'] ?: 'main'
+    IMAGE_NAME = nestedParams['IMAGE_NAME'] ?: ''
+    IMAGE_TAG = nestedParams['IMAGE_TAG'] ?: 'latest'
+    DOCKER_HUB_USERNAME = nestedParams['DOCKER_HUB_USERNAME'] ?: ''
+    DOCKER_CREDENTIALS = nestedParams['DOCKER_CREDENTIALS'] ?: ''
+    GIT_CREDENTIALS = nestedParams['GIT_CREDENTIALS'] ?: ''
+    CUSTOM_REGISTRY = nestedParams['CUSTOM_REGISTRY'] ?: 'docker.io'
+    DOCKERFILE_LOCATION = nestedParams['DOCKERFILE_LOCATION'] ?: '.'
+
     echo "DEBUG: Parameters received: ${nestedParams}"
 
-    // Improved validation with specific missing parameters
     def missingParams = []
-    if (!imageName) missingParams << "IMAGE_NAME"
-    if (!dockerHubUsername) missingParams << "DOCKER_HUB_USERNAME"
-    if (!dockerCredentialsId) missingParams << "DOCKER_CREDENTIALS"
-    if (!gitURL) missingParams << "GIT_URL"
+    if (!IMAGE_NAME) missingParams << "IMAGE_NAME"
+    if (!DOCKER_HUB_USERNAME) missingParams << "DOCKER_HUB_USERNAME"
+    if (!DOCKER_CREDENTIALS) missingParams << "DOCKER_CREDENTIALS"
+    if (!GIT_URL) missingParams << "GIT_URL"
 
     if (!missingParams.isEmpty()) {
         error "Missing required parameters: ${missingParams.join(', ')}"
@@ -40,22 +49,23 @@ def call(Map params) {
     ) {
         node(uniqueLabel) {
             withEnv([
-                "IMAGE_NAME=${imageName}",
-                "IMAGE_TAG=${imageTag}",
-                "DOCKER_HUB_USERNAME=${dockerHubUsername}",
-                "DOCKER_CREDENTIALS=${dockerCredentialsId}",
-                "GIT_CREDENTIALS=${gitCredentialsId}",
-                "CUSTOM_REGISTRY=${customRegistry}",
-                "DOCKERFILE_LOCATION=${dockerfileLocation}",
-                "GIT_URL=${gitURL}"
+                "IMAGE_NAME=${IMAGE_NAME}",
+                "IMAGE_TAG=${IMAGE_TAG}",
+                "DOCKER_HUB_USERNAME=${DOCKER_HUB_USERNAME}",
+                "DOCKER_CREDENTIALS=${DOCKER_CREDENTIALS}",
+                "GIT_CREDENTIALS=${GIT_CREDENTIALS}",
+                "CUSTOM_REGISTRY=${CUSTOM_REGISTRY}",
+                "DOCKERFILE_LOCATION=${DOCKERFILE_LOCATION}",
+                "GIT_URL=${GIT_URL}",
+                "GIT_BRANCH=${GIT_BRANCH}"
             ]) {
                 stage('Clone Git Repository') {
                     container('alpine-git') {
                         script {
                             try {
-                                if (gitCredentialsId?.trim()) {
-                                    echo "Cloning private repo: ${gitURL} with credentials: ${gitCredentialsId}"
-                                    withCredentials([usernamePassword(credentialsId: gitCredentialsId, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                                if (GIT_CREDENTIALS?.trim()) {
+                                    echo "Cloning private repo: ${GIT_URL} with credentials: ${GIT_CREDENTIALS}"
+                                    withCredentials([usernamePassword(credentialsId: GIT_CREDENTIALS, usernameVariable: 'GIT_USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
                                         sh '''
                                             echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
                                             git --version
@@ -64,7 +74,7 @@ def call(Map params) {
                                         '''
                                     }
                                 } else {
-                                    echo "Cloning public repo: ${gitURL}"
+                                    echo "Cloning public repo: ${GIT_URL}"
                                     sh '''
                                         echo "Cloning repository from $GIT_URL - Branch: $GIT_BRANCH"
                                         git --version
@@ -101,8 +111,8 @@ def call(Map params) {
                     container('docker') {
                         script {
                             try {
-                                echo "Building Docker image: ${imageName}:${imageTag} from ${dockerfileLocation}"
-                                sh "docker build -t ${imageName}:${imageTag} ${dockerfileLocation}"
+                                echo "Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG} from ${DOCKERFILE_LOCATION}"
+                                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKERFILE_LOCATION}"
                             } catch (Exception e) {
                                 error "Build Docker Image failed: ${e.getMessage()}"
                             }
@@ -115,9 +125,9 @@ def call(Map params) {
                             try {
                                 sh "mkdir -p /root/.cache/trivy/db"
                                 sh "trivy image --download-db-only --timeout 15m --debug"
-                                echo "Scanning image ${imageName}:${imageTag} with Trivy..."
-                                sh "trivy image ${imageName}:${imageTag} --timeout 15m -f json -o trivy-report.json"
-                                sh "trivy image ${imageName}:${imageTag} --timeout 15m -f table -o trivy-report.txt"
+                                echo "Scanning image ${IMAGE_NAME}:${IMAGE_TAG} with Trivy..."
+                                sh "trivy image ${IMAGE_NAME}:${IMAGE_TAG} --timeout 15m -f json -o trivy-report.json"
+                                sh "trivy image ${IMAGE_NAME}:${IMAGE_TAG} --timeout 15m -f table -o trivy-report.txt"
                                 recordIssues(
                                     enabledForFailure: true,
                                     tool: trivy(pattern: "trivy-report.json", id: "trivy-json", name: "Image Scan Report")
@@ -134,12 +144,12 @@ def call(Map params) {
                     container('docker') {
                         script {
                             try {
-                                withCredentials([usernamePassword(credentialsId: dockerCredentialsId, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                                    echo "Logging into Docker registry: ${customRegistry} as user: ${USERNAME}"
+                                withCredentials([usernamePassword(credentialsId: DOCKER_CREDENTIALS, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                                    echo "Logging into Docker registry: ${CUSTOM_REGISTRY} as user: ${USERNAME}"
                                     sh '''
-                                        echo \$PASSWORD | docker login ${customRegistry} -u \$USERNAME --password-stdin
-                                        docker tag ${imageName}:${imageTag} ${customRegistry}/${imageName}:${imageTag}
-                                        docker push ${customRegistry}/${imageName}:${imageTag}
+                                        echo \$PASSWORD | docker login ${CUSTOM_REGISTRY} -u \$USERNAME --password-stdin
+                                        docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                                        docker push ${CUSTOM_REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
                                     '''
                                 }
                             } catch (Exception e) {
