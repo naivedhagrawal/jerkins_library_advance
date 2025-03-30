@@ -8,7 +8,8 @@ dockerbuildpush(
     GIT_REPO: 'https://github.com/naivedh/sample-repo.git',
     GIT_BRANCH: 'main',
     GIT_CREDENTIALS: '',  // Optional Git credentials for private repos
-    CUSTOM_REGISTRY: ''  // Optional, defaults to Docker Hub
+    CUSTOM_REGISTRY: '',  // Optional, defaults to Docker Hub
+    DOCKERFILE_LOCATION: '.'  // Dockerfile location, defaults to workspace
 )*/
 
 def call(Map params) {
@@ -20,6 +21,7 @@ def call(Map params) {
     def GIT_BRANCH = params.GIT_BRANCH
     def GIT_CREDENTIALS = params.GIT_CREDENTIALS ?: ''  // Handle public repos
     def CUSTOM_REGISTRY = params.CUSTOM_REGISTRY ?: 'docker.io'  // Use Docker Hub by default
+    def DOCKERFILE_LOCATION = params.DOCKERFILE_LOCATION ?: '.'  // Use workspace by default
 
     if (!IMAGE_NAME || !IMAGE_TAG || !DOCKER_HUB_USERNAME || !DOCKER_CREDENTIALS || !GIT_REPO || !GIT_BRANCH) {
         error "Missing required parameters!"
@@ -48,6 +50,7 @@ def call(Map params) {
                 GIT_BRANCH = "${GIT_BRANCH}"
                 GIT_CREDENTIALS = "${GIT_CREDENTIALS}"
                 CUSTOM_REGISTRY = "${CUSTOM_REGISTRY}"
+                DOCKERFILE_LOCATION = "${DOCKERFILE_LOCATION}"
             }
 
             stages {
@@ -98,8 +101,8 @@ def call(Map params) {
                         container('docker') {
                             script {
                                 try {
-                                    echo "Building ${IMAGE_NAME}"
-                                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                                    echo "Building ${IMAGE_NAME} using Dockerfile at ${DOCKERFILE_LOCATION}"
+                                    sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKERFILE_LOCATION}"
                                 } catch (Exception e) {
                                     error "Build Docker Image failed: ${e.getMessage()}"
                                 }
