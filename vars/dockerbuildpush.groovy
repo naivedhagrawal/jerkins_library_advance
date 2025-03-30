@@ -96,7 +96,7 @@ def call(Map params = [:]) {
                         script {
                             try {
                                 echo "Building Docker image: ${IMAGE_NAME}:${IMAGE_TAG} from ${DOCKERFILE_LOCATION}"
-                                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ${DOCKERFILE_LOCATION}"
+                                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} \$WORKSPACE/${DOCKERFILE_LOCATION}"
                             } catch (Exception e) {
                                 error "Build Docker Image failed: ${e.getMessage()}"
                             }
