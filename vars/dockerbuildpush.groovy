@@ -13,6 +13,8 @@ dockerbuildpush(
 )*/
 
 def call(Map params) {
+    def uniqueLabel = "docker-build-push-${UUID.randomUUID().toString()}"  // Generate unique label
+    
     def IMAGE_NAME = params.IMAGE_NAME
     def IMAGE_TAG = params.IMAGE_TAG
     def DOCKER_HUB_USERNAME = params.DOCKER_HUB_USERNAME
@@ -28,7 +30,7 @@ def call(Map params) {
     }
 
     podTemplate(
-        label: "docker-trivy-${UUID.randomUUID().toString()}",
+        label: uniqueLabel,
         containers: [
             containerTemplate(name: 'alpine-git', image: 'alpine/git:latest', command: 'sleep', args: '999999', ttyEnabled: true, alwaysPullImage: true),
             containerTemplate(name: 'trivy', image: 'aquasec/trivy:latest', command: 'sleep', args: '999999', ttyEnabled: true, alwaysPullImage: true),
@@ -40,7 +42,7 @@ def call(Map params) {
             emptyDirVolume(mountPath: '/root/.cache/trivy', memory: false)
         ]
     ) {
-        node(POD_LABEL) {
+        node(uniqueLabel) {
             environment {
                 IMAGE_NAME = "${IMAGE_NAME}"
                 IMAGE_TAG = "${IMAGE_TAG}"
