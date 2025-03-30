@@ -67,6 +67,9 @@ def call(Map params = [:]) {
                         }
                     }
                 }
+                stage('Security Scan') {
+                    securityscan(params: [GIT_URL: GIT_URL, GIT_BRANCH: GIT_BRANCH])
+                }
                 stage('Trivy Repo Scan') {
                     container('trivy') {
                         script {
