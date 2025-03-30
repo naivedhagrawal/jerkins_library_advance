@@ -76,7 +76,7 @@ def call(Map params = [:]) {
                                 sh "trivy fs . --timeout 15m -f table -o trivy-repo-scan.txt"
                                 recordIssues(
                                     enabledForFailure: true,
-                                    tool: trivy(pattern: 'trivy-repo-scan.json', id: 'trivy-repo', name: 'Repo Scan Report'),
+                                    tool: trivy(pattern: 'trivy-repo-scan.json', id: 'Repo Scan Report', name: 'Repo Scan Report'),
 
                                     qualityGates: [
                                         [threshold: 5, type: 'TOTAL', unstable: true],
@@ -114,7 +114,7 @@ def call(Map params = [:]) {
                                 sh "trivy image ${IMAGE_NAME}:${IMAGE_TAG} --timeout 15m -f table -o trivy-report.txt"
                                 recordIssues(
                                     enabledForFailure: true,
-                                    tool: trivy(pattern: "trivy-report.json", id: "trivy-json", name: "Image Scan Report"),
+                                    tool: trivy(pattern: "trivy-report.json", id: "Image Scan Report", name: "Image Scan Report"),
 
                                     qualityGates: [
                                         [threshold: 5, type: 'TOTAL', unstable: true],
